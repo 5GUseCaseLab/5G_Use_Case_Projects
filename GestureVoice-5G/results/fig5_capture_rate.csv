@@ -1,0 +1,6 @@
+stage,frames_per_second,ms_per_frame,note
+Training data,30,33.3,clips recorded at 30 fps
+Camera sub-stream (sent),15,66.7,"1280x720 H.264, camera setting"
+UNO Q video decode only,20.0,50.0,"sub-stream, no hand tracking (decoder catching up on buffered frames)"
+UNO Q hand tracking only,5,200,"MediaPipe 0.10.9 on Cortex-A53, approximate benchmark"
+UNO Q decode + hand tracking + send (end to end),2.5,400,"151 frames in about 60 s, live camera"
