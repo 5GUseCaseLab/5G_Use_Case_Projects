@@ -14,6 +14,8 @@ shown on a live web page.
 
 https://github.com/user-attachments/assets/00a1c049-2a2a-4ff8-87cf-f694a476da3b
 
+## How it works
+
 ```
  IP CCTV camera ──RTSP──▶ Arduino UNO Q ──Wi-Fi──▶ 5G CPE ──Ethernet──▶ MEC server
    (15 fps)               MediaPipe hands          (local network)       GRU classifier
