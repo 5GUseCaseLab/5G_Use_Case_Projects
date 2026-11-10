@@ -10,6 +10,10 @@ shown on a live web page.
 
 📄 **Poster:** [poster/GestureVoice5G_A1_Poster.pdf](poster/GestureVoice5G_A1_Poster.pdf)
 
+## Demo
+
+https://github.com/user-attachments/assets/00a1c049-2a2a-4ff8-87cf-f694a476da3b
+
 ```
  IP CCTV camera ──RTSP──▶ Arduino UNO Q ──Wi-Fi──▶ 5G CPE ──Ethernet──▶ MEC server
    (15 fps)               MediaPipe hands          (local network)       GRU classifier
