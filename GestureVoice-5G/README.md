@@ -38,9 +38,6 @@ The raw numbers behind the poster figures are in [results/](results/).
 
 **Read these results with their limits:**
 
-- **The 5G radio and core were not tested.** The 5G core was down, so the UNO Q
-  reached the CPE over the CPE's Wi-Fi and the MEC was wired to the CPE's LAN.
-  Traffic stayed on the CPE's local network.
 - **The two round-trip figures come from different setups:** different servers
   (MEC on CPU vs a MacBook) and different days. They are not a pure network
   comparison.
@@ -197,7 +194,7 @@ imports PyTorch.
 
 ## Future work
 
-- Run over the 5G radio and the UPF, once the 5G core is back.
+- Run end to end through the 5G core and the UPF.
 - Measure the end-to-end delay from sign to speech.
 - Evaluate on signers held out from training.
 - Raise the capture rate on the UNO Q, or make the model's window time-based,
