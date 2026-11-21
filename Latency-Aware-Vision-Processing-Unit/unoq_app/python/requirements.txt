@@ -1,0 +1,4 @@
+# Intentionally empty: opencv, numpy and websockets already come with the UNO Q image.
+# Listing them here made App Lab's installer fail ("no version of opencv-python-headless==4.13.0+...").
+# Optional speed-up (try it only after everything else works; delete the line if the app log shows an install error):
+# onnxruntime

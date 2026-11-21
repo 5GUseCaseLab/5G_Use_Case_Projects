@@ -1,0 +1,5 @@
+name: Vision Processing Unit
+icon: 🚗
+description: Latency-aware object detection + tracking. Runs on the laptop GPU when the link is good, locally on the UNO Q when it is not.
+bricks:
+  - arduino:web_ui

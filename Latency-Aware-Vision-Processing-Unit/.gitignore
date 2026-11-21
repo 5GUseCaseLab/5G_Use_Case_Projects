@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.onnx
+*.pt
+*.mp4
+*.avi
+calib_out/
+uploads/
+remote_url.txt
+*_tracks.csv
+.venv/

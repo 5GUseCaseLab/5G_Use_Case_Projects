@@ -1,0 +1,8 @@
+ultralytics
+websockets>=12
+opencv-python
+numpy
+# install a CUDA build of torch first: https://pytorch.org/get-started/locally/
+# optional:  --flow raft  needs torchvision (installed with the CUDA torch build above)
+# optional:  --depth      needs: transformers
+# optional:  tools/frames_to_video.py without a system ffmpeg: imageio-ffmpeg
