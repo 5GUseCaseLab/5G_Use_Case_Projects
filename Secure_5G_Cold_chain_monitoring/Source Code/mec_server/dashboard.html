@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cold-Chain Monitor</title>
+<style>
+  :root{--bg:#f4f6f8;--card:#fff;--text:#1b2430;--muted:#6b7684;--line:#e2e6ea;
+        --green:#1f9d55;--blue:#2563eb;--red:#d93025;--gray:#7a828c;--amber:#d98200;--band:rgba(31,157,85,.10)}
+  @media (prefers-color-scheme:dark){:root{--bg:#10151b;--card:#18202a;--text:#e8edf2;--muted:#93a0ae;
+        --line:#2a3542;--green:#2e9e63;--blue:#3b6fe0;--red:#d9463d;--gray:#6b737d;--amber:#f0a030;--band:rgba(62,201,122,.12)}}
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  h1{font-size:18px;margin:4px 0 14px;font-weight:600}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .big{font-size:44px;font-weight:700;line-height:1.1;margin-top:4px}
+  .status{color:#fff;border:0;transition:background .3s}
+  .status .label{color:rgba(255,255,255,.85)}
+  .s-SECURE{background:var(--green)} .s-COOLING{background:var(--blue)}
+  .s-ATTACK{background:var(--red)} .s-OFFLINE{background:var(--gray)}
+  .sub{font-size:13px;margin-top:6px;opacity:.95}
+  .stats{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:14px;margin-top:8px}
+  .stats span:nth-child(even){font-weight:600;text-align:right}
+  .wide{margin-top:12px}
+  svg{width:100%;height:240px;display:block}
+  #events{list-style:none;margin:8px 0 0;padding:0;max-height:260px;overflow:auto;font-size:13px}
+  #events li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:10px}
+  #events time{color:var(--muted);flex:none;font-variant-numeric:tabular-nums}
+  .bad{color:var(--red)} .good{color:var(--green)} .warn{color:var(--amber)}
+  .chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--line);margin-left:6px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Cold-Chain Monitor <span class="chip" id="broker">broker: ?</span></h1>
+  <div class="grid">
+    <div class="card status s-OFFLINE" id="statusCard">
+      <div class="label">System status</div>
+      <div class="big" id="status">OFFLINE</div>
+      <div class="sub" id="statusSub">Waiting for verified telemetry</div>
+    </div>
+    <div class="card">
+      <div class="label">Temperature</div>
+      <div class="big" id="temp">--</div>
+      <div class="sub" id="alarm" style="color:var(--muted)">Safe range: -- to -- &deg;C</div>
+    </div>
+    <div class="card">
+      <div class="label">Cooling output</div>
+      <div class="big" id="pwm">--</div>
+      <div class="sub" style="color:var(--muted)" id="pwmSub">PWM 0-255</div>
+    </div>
+    <div class="card">
+      <div class="label">Command round-trip</div>
+      <div class="big" id="rtt" style="font-size:38px">--</div>
+      <div class="sub" id="rttSub" style="color:var(--muted)">waiting for first command</div>
+    </div>
+  </div>
+  <div class="card wide">
+    <div class="label">Temperature (verified readings only)</div>
+    <svg id="chart" viewBox="0 0 900 240" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="card wide">
+    <div class="label">Latency (ms): command round-trip and telemetry one-way</div>
+    <svg id="lchart" viewBox="0 0 900 150" preserveAspectRatio="none" style="height:150px"></svg>
+    <div class="sub" id="oneSub" style="color:var(--muted)"></div>
+  </div>
+  <div class="grid wide">
+    <div class="card">
+      <div class="label">Security counters</div>
+      <div class="stats">
+        <span>Telemetry accepted</span><span id="c_acc">0</span>
+        <span>Telemetry rejected</span><span id="c_rej">0</span>
+        <span>Commands sent</span><span id="c_sent">0</span>
+        <span>Commands accepted by board</span><span id="c_cacc">0</span>
+        <span>Commands rejected</span><span id="c_crej">0</span>
+        <span>Last telemetry seq</span><span id="seq">--</span>
+        <span>Last command nonce</span><span id="nonce">--</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Event log</div>
+      <ul id="events"></ul>
+    </div>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const fmtTime = t => new Date(t*1000).toLocaleTimeString();
+const SUB = {
+  SECURE:"All checks passing, no cooling needed", COOLING:"Authenticated cooling command active",
+  ATTACK:"A message failed authentication or replay checks", OFFLINE:"No verified telemetry recently"
+};
+
+function drawChart(hist, th){
+  const svg = $("chart"), W=900, H=240, L=40, R=10, T=10, B=22;
+  if(hist.length < 2){ svg.innerHTML = ""; return; }
+  const ts = hist.map(p=>p[0]), vs = hist.map(p=>p[1]);
+  const t0 = ts[0], t1 = ts[ts.length-1] || t0+1;
+  const lo = Math.min(th.low-1, ...vs) , hi = Math.max(th.high+1, ...vs);
+  const x = t => L + (t - t0) / Math.max(1, t1 - t0) * (W-L-R);
+  const y = v => T + (hi - v) / (hi - lo) * (H-T-B);
+  const css = getComputedStyle(document.documentElement);
+  const c = n => css.getPropertyValue(n).trim();
+  let s = `<rect x="${L}" y="${y(th.high)}" width="${W-L-R}" height="${y(th.low)-y(th.high)}" fill="${c('--band')}"/>`;
+  for(const [v,name] of [[th.high,"high "+th.high],[th.low,"low "+th.low]])
+    s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${c('--red')}" stroke-dasharray="4 4" stroke-width="1"/>
+          <text x="${L+4}" y="${y(v)-4}" font-size="11" fill="${c('--muted')}">${name}&deg;C</text>`;
+  for(const v of [th.cool_on, th.cool_off])
+    s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="${c('--blue')}" stroke-dasharray="2 4" stroke-width="1" opacity=".7"/>`;
+  s += `<polyline fill="none" stroke="${c('--text')}" stroke-width="2" points="${hist.map(p=>x(p[0]).toFixed(1)+","+y(p[1]).toFixed(1)).join(" ")}"/>`;
+  const last = hist[hist.length-1];
+  s += `<circle cx="${x(last[0])}" cy="${y(last[1])}" r="4" fill="${c('--text')}"/>`;
+  for(let v=Math.ceil(lo); v<=hi; v+=2)
+    s += `<text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${c('--muted')}">${v}</text>`;
+  svg.innerHTML = s;
+}
+
+function drawLatency(rtt, one){
+  const svg = $("lchart"), W=900, H=150, L=44, R=10, T=14, B=8;
+  const all = rtt.concat(one);
+  if(all.length < 2){ svg.innerHTML = ""; return; }
+  const css = getComputedStyle(document.documentElement), c = n => css.getPropertyValue(n).trim();
+  const hi = Math.max(50, ...all) * 1.1, lo = Math.min(0, ...all);
+  const y = v => T + (hi - v) / (hi - lo) * (H-T-B);
+  const line = (arr, col, dash) => {
+    if(arr.length < 2) return "";
+    const pts = arr.map((v,i)=> (L + i/(arr.length-1)*(W-L-R)).toFixed(1)+","+y(v).toFixed(1)).join(" ");
+    return `<polyline fill="none" stroke="${col}" stroke-width="2" ${dash?'stroke-dasharray="6 4"':''} points="${pts}"/>`;
+  };
+  let s = `<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="${c('--line')}"/>`;
+  for(const v of [hi/1.1/2, hi/1.1])
+    s += `<text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${c('--muted')}">${Math.round(v)}</text>`;
+  s += line(rtt, c('--blue'), false) + line(one, c('--green'), true);
+  s += `<text x="${L+6}" y="11" font-size="11" fill="${c('--blue')}">round-trip</text>
+        <text x="${L+86}" y="11" font-size="11" fill="${c('--green')}">one-way (telemetry)</text>`;
+  svg.innerHTML = s;
+}
+
+function fmt(x){ return x == null ? "--" : Math.round(x); }
+
+function render(d){
+  $("status").textContent = d.status;
+  $("statusCard").className = "card status s-" + d.status;
+  let sub = SUB[d.status];
+  if(d.seconds_since_telemetry != null) sub += ` (last reading ${d.seconds_since_telemetry.toFixed(0)}s ago)`;
+  $("statusSub").textContent = sub;
+  $("broker").textContent = "broker: " + (d.broker_connected ? "connected" : "disconnected");
+  $("temp").textContent = d.temperature == null ? "--" : d.temperature.toFixed(1) + " \u00b0C";
+  const a = $("alarm");
+  if(d.alarm){ a.textContent = d.alarm.replace("_"," ") + " ALARM"; a.style.color = "var(--red)"; a.style.fontWeight = 700; }
+  else { a.textContent = `Safe range: ${d.thresholds.low} to ${d.thresholds.high} \u00b0C`; a.style.color = "var(--muted)"; a.style.fontWeight = 400; }
+  $("pwm").textContent = d.cooling_pwm == null ? "--" : Math.round(d.cooling_pwm / 255 * 100) + "%";
+  $("pwmSub").textContent = `PWM ${d.cooling_pwm ?? "--"} / 255`;
+  const c = d.counts;
+  $("c_acc").textContent = c.accepted; $("c_rej").textContent = c.rejected_telemetry;
+  $("c_sent").textContent = c.commands_sent; $("c_cacc").textContent = c.commands_accepted;
+  $("c_crej").textContent = c.commands_rejected;
+  $("seq").textContent = d.last_seq ?? "--"; $("nonce").textContent = d.last_nonce ?? "--";
+  const ul = $("events"); ul.innerHTML = "";
+  for(const [t, lvl, txt] of d.events){
+    const li = document.createElement("li"), tm = document.createElement("time"), sp = document.createElement("span");
+    tm.textContent = fmtTime(t); sp.textContent = txt; sp.className = lvl;
+    li.append(tm, sp); ul.appendChild(li);
+  }
+  const L = d.latency, r = L.rtt, o = L.oneway;
+  $("rtt").textContent = r.last == null ? "--" : fmt(r.last) + " ms";
+  $("rttSub").textContent = r.n ? `avg ${fmt(r.avg)} \u00b7 p95 ${fmt(r.p95)} \u00b7 n=${r.n}` : "waiting for first command";
+  $("oneSub").textContent = o.n
+    ? `Telemetry one-way: avg ${fmt(o.avg)} ms, p95 ${fmt(o.p95)} ms (n=${o.n}). Valid only if the board and laptop clocks are synchronised.`
+    : "Telemetry one-way: waiting for millisecond timestamps from the board.";
+  drawLatency(L.rtt_recent, L.oneway_recent);
+  drawChart(d.history, d.thresholds);
+}
+
+async function tick(){
+  try { render(await (await fetch("/api/state", {cache:"no-store"})).json()); }
+  catch(e){ $("status").textContent = "SERVER UNREACHABLE"; $("statusCard").className = "card status s-OFFLINE"; }
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
