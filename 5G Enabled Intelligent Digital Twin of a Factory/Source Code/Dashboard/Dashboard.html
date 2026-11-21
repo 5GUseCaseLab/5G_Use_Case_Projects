@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SARM & UNO Q Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg1:#05060c; --bg2:#0a0e1a; --glass:rgba(20,24,38,.55); --border:rgba(0,229,255,.18);
+  --cyan:#00e5ff; --mag:#ff2fb0; --ok:#39ff88; --warn:#ffb347; --danger:#ff3b5c; --muted:#7c88a3; --text:#eef2ff;
+  color-scheme: dark;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:24px 16px calc(50px + env(safe-area-inset-bottom,0px)) 16px;
+  padding-top:calc(24px + env(safe-area-inset-top,0px));
+  color:var(--text);background:var(--bg1);
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(0,229,255,.08), transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(255,47,176,.08), transparent 40%),
+    linear-gradient(var(--bg1),var(--bg2));
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+.wrap{max-width:1080px;margin:0 auto;position:relative;}
+.gridfx{position:fixed;inset:0;z-index:-1;opacity:.25;
+  background-image:linear-gradient(rgba(0,229,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.12) 1px,transparent 1px);
+  background-size:42px 42px; animation:drift 14s linear infinite; mask-image:radial-gradient(circle at 50% 20%,#000,transparent 75%);}
+@keyframes drift{from{background-position:0 0;}to{background-position:42px 42px;}}
+h1{text-align:center;margin:0;font-size:clamp(24px,4vw,34px);font-weight:800;letter-spacing:1px;
+  background:linear-gradient(90deg,var(--cyan),var(--mag));-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(0,229,255,.25);}
+.tag{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 28px;letter-spacing:.5px;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-top:36px;padding:10px 16px;
+  border-radius:10px;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(10px);}
+.section-header h2{margin:0;font-size:17px;letter-spacing:.5px;color:#fff;}
+.badge{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid var(--border);}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:16px 0;}
+.card{position:relative;background:var(--glass);padding:18px 14px;border-radius:14px;text-align:center;
+  border:1px solid var(--border);backdrop-filter:blur(10px);overflow:hidden;transition:box-shadow .3s,transform .2s;}
+.card:hover{transform:translateY(-2px);}
+.card::before{content:'';position:absolute;inset:0;border-radius:14px;padding:1px;
+  background:linear-gradient(135deg,rgba(0,229,255,.4),transparent 40%,rgba(255,47,176,.3));
+  -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.card.danger{box-shadow:0 0 22px rgba(255,59,92,.45);animation:pulseDanger 1.4s ease-in-out infinite;}
+@keyframes pulseDanger{0%,100%{box-shadow:0 0 14px rgba(255,59,92,.35);}50%{box-shadow:0 0 30px rgba(255,59,92,.65);}}
+.card h3{margin:0 0 8px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+.value{font-size:24px;font-weight:800;}
+.sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.ok{color:var(--ok);text-shadow:0 0 12px rgba(57,255,136,.5);} .warn{color:var(--warn);} .danger-t{color:var(--danger);text-shadow:0 0 12px rgba(255,59,92,.5);}
+.panel{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:18px;margin-top:16px;backdrop-filter:blur(10px);}
+.panel h3{margin:0 0 14px;font-size:13px;color:#cfe2ff;text-align:center;letter-spacing:.6px;text-transform:uppercase;}
+.viz-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;align-items:center;}
+.gauges{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.gauge{width:130px;text-align:center;}
+.gauge svg{transform:rotate(-90deg);filter:drop-shadow(0 0 8px currentColor);}
+.gauge .glabel{margin-top:-78px;font-size:20px;font-weight:800;}
+.gauge .gsub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+canvas.chartjs{max-width:100%;}
+#robotScene{width:260px;height:260px;border-radius:14px;overflow:hidden;background:radial-gradient(circle,rgba(0,229,255,.06),transparent 70%);}
+.controls{text-align:center;}
+button{margin:5px;padding:11px 20px;font-size:13px;font-weight:700;letter-spacing:.4px;cursor:pointer;border:none;border-radius:8px;
+  transition:transform .12s,box-shadow .2s;color:#071018;}
+button:active{transform:scale(.95);}
+.on{background:linear-gradient(135deg,var(--ok),#1fb869);box-shadow:0 0 16px rgba(57,255,136,.4);}
+.off{background:linear-gradient(135deg,var(--danger),#c21f3c);box-shadow:0 0 16px rgba(255,59,92,.4);color:#fff;}
+.neutral{background:linear-gradient(135deg,var(--cyan),#0a8bb3);box-shadow:0 0 16px rgba(0,229,255,.4);}
+.pwm-row{margin-top:12px;display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px;}
+input[type="range"]{width:200px;accent-color:var(--cyan);}
+.radarWrap{position:relative;width:240px;height:240px;}
+.radar{width:240px;height:240px;}
+.sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(0,229,255,.35),transparent 40%);
+  animation:spin 3s linear infinite;mix-blend-mode:screen;}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="gridfx"></div>
+<div class="wrap">
+<h1>SARM ROBOT &middot; UNO&nbsp;Q TELEMETRY</h1>
+<div class="tag">Live sensor fusion &middot; 3D proximity scan &middot; realtime trends</div>
+
+<div class="section-header"><h2>⚙ SARM-Robot-01 <span style="color:var(--muted);font-weight:400;">(Nano)</span></h2><span class="badge" id="sarm-updated">Waiting…</span></div>
+<div class="grid">
+  <div class="card" id="c-temp"><h3>Temperature</h3><div class="value" id="sarm-temp">-- °C</div></div>
+  <div class="card" id="c-hum"><h3>Humidity</h3><div class="value" id="sarm-hum">-- %</div></div>
+  <div class="card" id="c-fan"><h3>Fan</h3><div class="value" id="sarm-fan">--</div><div class="sub" id="sarm-fan-mode">Mode: --</div></div>
+  <div class="card" id="c-motor"><h3>Motor</h3><div class="value" id="sarm-motor">--</div><div class="sub" id="sarm-motor-req">Requested: --</div></div>
+  <div class="card" id="c-obs"><h3>Obstacle</h3><div class="value" id="sarm-obstacle">--</div></div>
+</div>
+
+<div class="panel">
+  <h3>Environment Gauges</h3>
+  <div class="gauges">
+    <div class="gauge"><svg viewBox="0 0 100 100" width="130" height="130">
+      <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,.08)" stroke-width="10" fill="none"/>
+      <circle id="gaugeTemp" cx="50" cy="50" r="42" stroke="var(--cyan)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/>
+    </svg><div class="glabel" id="gaugeTempLabel" style="color:var(--cyan)">--°C</div><div class="gsub">Temperature</div></div>
+    <div class="gauge"><svg viewBox="0 0 100 100" width="130" height="130">
+      <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,.08)" stroke-width="10" fill="none"/>
+      <circle id="gaugeHum" cx="50" cy="50" r="42" stroke="var(--mag)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="264" stroke-dashoffset="264"/>
+    </svg><div class="glabel" id="gaugeHumLabel" style="color:var(--mag)">--%</div><div class="gsub">Humidity</div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3>3D Proximity Scan</h3>
+  <div class="viz-row">
+    <div class="radarWrap"><div class="sweep"></div><svg id="radar" class="radar" viewBox="0 0 240 240"></svg></div>
+    <div id="robotScene"></div>
+  </div>
+</div>
+
+<div class="panel controls">
+  <h3>SARM-Robot-01 Controls</h3>
+  <button class="on" onclick="sendCommand('MOTOR:ON','sarm')">▶ Motor ON</button>
+  <button class="off" onclick="sendCommand('MOTOR:OFF','sarm')">■ Motor OFF</button>
+</div>
+
+<div class="section-header"><h2>🛰 UNO-Q-MPU <span style="color:var(--muted);font-weight:400;">(Gateway &amp; Motor)</span></h2><span class="badge" id="unoq-updated">Waiting…</span></div>
+<div class="grid">
+  <div class="card"><h3>Motor RPM</h3><div class="value" id="unoq-rpm">--</div></div>
+  <div class="card" id="c-unoq-curr"><h3>Motor Current</h3><div class="value" id="unoq-curr">-- A</div></div>
+  <div class="card"><h3>Encoder Position</h3><div class="value" id="unoq-enc">--</div></div>
+  <div class="card"><h3>Temperature</h3><div class="value" id="unoq-temp">-- °C</div></div>
+  <div class="card"><h3>Humidity</h3><div class="value" id="unoq-hum">-- %</div></div>
+</div>
+
+<div class="panel controls">
+  <h3>UNO-Q Motor Control</h3>
+  <button class="on" onclick="sendCommand({cmd:'ON'},'unoq')">▶ Motor ON</button>
+  <button class="off" onclick="sendCommand({cmd:'OFF'},'unoq')">■ Motor OFF</button>
+  <div class="pwm-row">
+    <label for="pwm-slider">PWM: <strong id="pwm-label" style="color:var(--cyan)">150</strong></label>
+    <input type="range" id="pwm-slider" min="-255" max="255" value="150" oninput="document.getElementById('pwm-label').textContent=this.value">
+    <button class="neutral" onclick="sendCommand({pwm:Number(document.getElementById('pwm-slider').value)},'unoq')">Set PWM</button>
+  </div>
+</div>
+</div>
+
+<script>
+const API_URL = "https://w6re0qlfdj.execute-api.eu-north-1.amazonaws.com/prod";
+const MAXPTS = 20;
+function nowTime(){return new Date().toLocaleTimeString();}
+function fmtDist(v,valid){ if(valid===false||v==null||v===999) return null; return Number(v); }
+
+/* ---- Gauges ---- */
+function setGauge(circleId,labelId,val,max,unit){
+  const c = document.getElementById(circleId), l = document.getElementById(labelId);
+  const CIRC = 264;
+  if(val==null){c.style.strokeDashoffset=CIRC; l.textContent='--'+unit; return;}
+  const pct = Math.max(0,Math.min(1,val/max));
+  c.style.strokeDashoffset = CIRC - pct*CIRC;
+  l.textContent = val.toFixed(1)+unit;
+}
+
+/* ---- 2D Radar ---- */
+function drawRadar(front,rear,left,right){
+  const svg = document.getElementById('radar');
+  const cx=120, cy=120, maxR=96, maxCm=100;
+  const scale = v => v==null ? maxR : Math.min(maxR,(Math.min(v,maxCm)/maxCm)*maxR);
+  const pts = {front:scale(front),rear:scale(rear),left:scale(left),right:scale(right)};
+  const danger = v => v!=null && v<15;
+  let html = `<circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="rgba(0,229,255,.25)"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="${maxR*0.66}" fill="none" stroke="rgba(0,229,255,.12)"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="${maxR*0.33}" fill="none" stroke="rgba(0,229,255,.12)"/>`;
+  html += `<circle cx="${cx}" cy="${cy}" r="7" fill="#00e5ff" style="filter:drop-shadow(0 0 6px #00e5ff)"/>`;
+  const dirs=[{k:'front',dx:0,dy:-1,label:'FRONT'},{k:'rear',dx:0,dy:1,label:'REAR'},{k:'left',dx:-1,dy:0,label:'LEFT'},{k:'right',dx:1,dy:0,label:'RIGHT'}];
+  dirs.forEach(d=>{
+    const r=pts[d.k], val={front,rear,left,right}[d.k];
+    const x=cx+d.dx*r, y=cy+d.dy*r;
+    const color = danger(val)?'#ff3b5c':'#39ff88';
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${color}" stroke-width="3" style="filter:drop-shadow(0 0 5px ${color})"/>`;
+    html += `<circle cx="${x}" cy="${y}" r="7" fill="${color}" style="filter:drop-shadow(0 0 6px ${color})"/>`;
+    const lx=cx+d.dx*(maxR+20), ly=cy+d.dy*(maxR+20)+4;
+    html += `<text x="${lx}" y="${ly}" fill="#7c88a3" font-size="10" text-anchor="middle">${d.label} ${val==null?'--':val.toFixed(0)+'cm'}</text>`;
+  });
+  svg.innerHTML = html;
+}
+
+/* ---- Three.js 3D robot scene ---- */
+let scene,camera,renderer,beams={},robotBox;
+function initScene(){
+  const el = document.getElementById('robotScene');
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setSize(260,260);
+  renderer.setPixelRatio(window.devicePixelRatio||1);
+  el.appendChild(renderer.domElement);
+
+  const amb = new THREE.AmbientLight(0x446688, 2.2); scene.add(amb);
+  const pt = new THREE.PointLight(0x00e5ff, 2.5, 20); pt.position.set(3,4,3); scene.add(pt);
+  const pt2 = new THREE.PointLight(0xff2fb0, 1.8, 20); pt2.position.set(-3,-2,-3); scene.add(pt2);
+  const pt3 = new THREE.PointLight(0xffffff, 1.5, 20); pt3.position.set(0,3,4); scene.add(pt3);
+
+  const grid = new THREE.GridHelper(8, 16, 0x00e5ff, 0x113344);
+  grid.position.y = -1.3; grid.material.opacity=0.3; grid.material.transparent=true;
+  scene.add(grid);
+
+  robotBox = new THREE.Group();
+  const bodyGeo = new THREE.BoxGeometry(1.3,0.7,1.7);
+  const body = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({color:0x16304a, emissive:0x00e5ff, emissiveIntensity:0.5, metalness:0.7, roughness:0.25}));
+  robotBox.add(body);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo), new THREE.LineBasicMaterial({color:0x7df9ff, linewidth:2}));
+  robotBox.add(edges);
+  // glowing "eyes"
+  [-0.35,0.35].forEach(x=>{
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.09,16,16), new THREE.MeshBasicMaterial({color:0xff2fb0}));
+    eye.position.set(x,0.08,-0.86);
+    robotBox.add(eye);
+  });
+  // antenna
+  const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,8), new THREE.MeshBasicMaterial({color:0x7df9ff}));
+  ant.position.set(0,0.65,0.3);
+  robotBox.add(ant);
+  const antTip = new THREE.Mesh(new THREE.SphereGeometry(0.06,12,12), new THREE.MeshBasicMaterial({color:0x39ff88}));
+  antTip.position.set(0,0.95,0.3);
+  robotBox.add(antTip);
+  scene.add(robotBox);
+
+  const dirs = {front:[0,0,-1],rear:[0,0,1],left:[-1,0,0],right:[1,0,0]};
+  Object.entries(dirs).forEach(([k,d])=>{
+    const geo = new THREE.CylinderGeometry(0.02,0.02,1,8);
+    const mat = new THREE.MeshBasicMaterial({color:0x39ff88, transparent:true, opacity:0.9});
+    const beam = new THREE.Mesh(geo, mat);
+    beam.userData.dir = d;
+    scene.add(beam);
+    beams[k]=beam;
+  });
+
+  camera.position.set(0,1.6,3.2);
+  camera.lookAt(0,0,0);
+  animate();
+}
+function orientBeam(beam,len){
+  const d = beam.userData.dir;
+  const dir = new THREE.Vector3(d[0],d[1],d[2]);
+  const mid = dir.clone().multiplyScalar(len/2 + 0.7);
+  beam.position.copy(mid);
+  beam.scale.y = len;
+  const axis = new THREE.Vector3(0,1,0);
+  beam.quaternion.setFromUnitVectors(axis, dir.clone().normalize());
+}
+function updateBeams(front,rear,left,right){
+  const maxCm=100, maxLen=2.4;
+  const toLen = v => v==null ? maxLen : Math.max(0.3, Math.min(v,maxCm)/maxCm*maxLen);
+  const set = (k,v)=>{ const len=toLen(v); orientBeam(beams[k],len);
+    const danger = v!=null && v<15;
+    beams[k].material.color.set(danger?0xff3b5c:0x39ff88); };
+  set('front',front); set('rear',rear); set('left',left); set('right',right);
+}
+let t0=0;
+function animate(){
+  requestAnimationFrame(animate);
+  t0 += 0.006;
+  if(robotBox) robotBox.rotation.y = Math.sin(t0*0.6)*0.25;
+  camera.position.x = Math.sin(t0)*3.4;
+  camera.position.z = Math.cos(t0)*3.4;
+  camera.position.y = 1.6;
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+if(window.THREE) initScene();
+
+/* ---- Data handling ---- */
+function setCardState(id,isDanger){ document.getElementById(id)?.classList.toggle('danger', !!isDanger); }
+
+function updateSarmRobot(data){
+  if(data.temperature_c!=null){document.getElementById("sarm-temp").textContent=Number(data.temperature_c).toFixed(1)+" °C"; setGauge('gaugeTemp','gaugeTempLabel',Number(data.temperature_c),50,'°C');}
+  if(data.humidity_pct!=null){document.getElementById("sarm-hum").textContent=Number(data.humidity_pct).toFixed(1)+" %"; setGauge('gaugeHum','gaugeHumLabel',Number(data.humidity_pct),100,'%');}
+  if(data.fan_on!=null){const el=document.getElementById("sarm-fan");el.textContent=data.fan_on?"ON":"OFF";el.className="value "+(data.fan_on?"ok":"");}
+  if(data.fan_mode!=null) document.getElementById("sarm-fan-mode").textContent="Mode: "+data.fan_mode;
+  if(data.motor_allowed!=null){const el=document.getElementById("sarm-motor");el.textContent=data.motor_allowed?"ON":"BLOCKED";el.className="value "+(data.motor_allowed?"ok":"danger-t"); setCardState('c-motor',!data.motor_allowed);}
+  if(data.motor_requested!=null) document.getElementById("sarm-motor-req").textContent="Requested: "+(data.motor_requested?"YES":"NO");
+  if(data.obstacle_detected!=null){const el=document.getElementById("sarm-obstacle");el.textContent=data.obstacle_detected?"DETECTED":"CLEAR";el.className="value "+(data.obstacle_detected?"danger-t":"ok"); setCardState('c-obs',data.obstacle_detected);}
+
+  const front=fmtDist(data.front_cm,data.front_valid), rear=fmtDist(data.rear_cm,data.rear_valid);
+  const left=fmtDist(data.left_cm,data.left_valid), right=fmtDist(data.right_cm,data.right_valid);
+  drawRadar(front,rear,left,right);
+  if(window.THREE && beams.front) updateBeams(front,rear,left,right);
+
+  document.getElementById("sarm-updated").textContent="● Last packet: "+nowTime();
+}
+function updateUnoQ(data){
+  if(data.motor_rpm!=null) document.getElementById("unoq-rpm").textContent=Number(data.motor_rpm).toFixed(2);
+  if(data.motor_current_a!=null) document.getElementById("unoq-curr").textContent=Number(data.motor_current_a).toFixed(3)+" A";
+  if(data.encoder_pos!=null) document.getElementById("unoq-enc").textContent=data.encoder_pos;
+  if(data.temperature_c!=null) document.getElementById("unoq-temp").textContent=Number(data.temperature_c).toFixed(1)+" °C";
+  if(data.humidity_pct!=null) document.getElementById("unoq-hum").textContent=Number(data.humidity_pct).toFixed(1)+" %";
+  document.getElementById("unoq-updated").textContent="● Last packet: "+nowTime();
+}
+function handlePacket(packet){
+  if(!packet || !packet.device_id) return;
+  if(packet.device_id==="SARM-Robot-01") updateSarmRobot(packet);
+  else if(packet.device_id==="UNO-Q-MPU") updateUnoQ(packet);
+}
+async function refreshData(){
+  try{ const res=await fetch(API_URL+"/data"); const data=await res.json();
+    if(Array.isArray(data)) data.forEach(handlePacket); else handlePacket(data);
+  }catch(e){ console.error("Failed to fetch data",e); }
+}
+async function sendCommand(cmd,target="sarm"){
+  try{
+    const payload = target==="unoq" ? {command:JSON.stringify(cmd)} : {command:cmd};
+    await fetch(API_URL+"/command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    setTimeout(refreshData,800);
+  }catch(e){ console.error(`Command failed for ${target}:`,e); }
+}
+drawRadar(null,null,null,null);
+refreshData();
+setInterval(refreshData,1000);
+</script>
+</body>
+</html>
