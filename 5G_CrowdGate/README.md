@@ -53,9 +53,8 @@ Sparsh 5G camera --RTSP--> MEC server ------------------------------------------
 ## 3. Repository structure
 
 ```
-CrowdGate/
-  README.md              this file (a copy is also kept in README/)
-  README/                README file
+5G_CrowdGate/
+  README.md              this file
   source_code/           all code
     crowdgate_mec.py       main service on the MEC: YOLO -> zone -> density -> dashboard + /status
     common.py              geometry (homography, area, zone test) and the density state machine
@@ -70,7 +69,7 @@ CrowdGate/
   model/                 best.pt, the fine-tuned YOLO11s weights
   calibration/           config_floor.json (3.33 m2 zone), config_markers.json (1.71 m2 marker rectangle), preview image
   results/               latency runs and the log of a live run
-  poster/                A1 poster (PDF and PPTX)
+  poster/                A1 poster (PDF)
   demo_video/            demonstration video
 ```
 
