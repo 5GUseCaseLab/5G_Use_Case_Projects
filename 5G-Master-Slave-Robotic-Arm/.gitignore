@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Measurement logs (regenerate with the v2 build)
+arm_log.csv
+
+# Arduino / IDE build output
+build/
+*.bin
+*.elf
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
