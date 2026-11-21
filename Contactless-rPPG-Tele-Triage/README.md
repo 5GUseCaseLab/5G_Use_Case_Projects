@@ -44,6 +44,9 @@ Contactless-rPPG-Tele-Triage/
 ├── requirements.txt                     # Python dependencies
 ├── .gitignore
 ├── README.md
+├── demo/
+│   ├── Uditya_BPM.mp4                   # Sample demo recording (Uditya)
+│   └── Vasudev_BPM.mp4                  # Sample demo recording (Vasudev)
 └── docs/
     └── rPPG_5G_MEC_TeleTriage_Poster_A1-1.pdf
 ```
@@ -82,16 +85,18 @@ Interactive HUD controls: press `R` to reset the 15 s buffer, or `Q` / `Esc` to 
 
 ### 2. Local video replay and offline batch
 
+Sample demo recordings are provided under `demo/` (`demo/Uditya_BPM.mp4` and `demo/Vasudev_BPM.mp4`).
+
 Replay a local video through the 15 s rolling pipeline:
 
 ```bash
-python3 vital_lens_ipcam.py --source path/to/video.mp4 --window-seconds 15 --expected-bpm 70 --fast-replay
+python3 vital_lens_ipcam.py --source demo/Vasudev_BPM.mp4 --window-seconds 15 --fast-replay
 ```
 
 Run the offline batch analyzer:
 
 ```bash
-python3 vital_lens_local.py path/to/video.mp4 --expected-bpm 70
+python3 vital_lens_local.py demo/Vasudev_BPM.mp4
 ```
 
 ### Tunable options (`vital_lens_ipcam.py`)
