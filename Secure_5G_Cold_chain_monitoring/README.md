@@ -2,6 +2,8 @@
 
 **Tamper-resistant temperature monitoring and cooling control for a cold-chain box, built on an Arduino UNO Q (edge) and a laptop acting as a Multi-access Edge Computing (MEC) server.**
 
+Demo Video Link : https://drive.google.com/file/d/1jOzDMXK1KtJQ1TcZ2yXlbreKQv2suMq8/view?usp=sharing
+
 A sensor on the edge device reports temperature. A server decides whether to cool. Every message in both directions is cryptographically signed and checked for replay, so a rogue device on the network can neither fake a "safe" reading nor switch the cooler on or off.
 
 You can run the **whole system on one computer with no hardware** (simulated sensor and cooler), then move to a real UNO Q, DS18B20 sensor and Peltier cooler when you have them. Only one file (`hardware.py`) and one Arduino sketch deal with hardware.
