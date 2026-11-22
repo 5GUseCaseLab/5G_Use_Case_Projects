@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WiFeye · live</title>
+<style>
+  :root {
+    --hdrA: #1e3a8a; --hdrB: #0f766e; --bg: #eef3fa; --card: #ffffff; --line: #d3dcea;
+    --ink: #0f172a; --ink2: #475569; --muted: #94a3b8;
+    --rx1: #2563eb; --rx2: #0d9488;
+    --fall: #dc2626; --walk: #2563eb; --posture: #7c3aed; --hand: #d97706; --empty: #64748b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { background: linear-gradient(90deg, var(--hdrA), var(--hdrB)); color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; gap: 24px; }
+  .brand { font-size: 34px; font-weight: 800; letter-spacing: .3px; }
+  .brand small { display: block; font-size: 15px; font-weight: 500; color: #fde68a; letter-spacing: .4px; }
+  .chip { border: 1.5px solid rgba(255,255,255,.55); background: rgba(255,255,255,.12); border-radius: 999px;
+    padding: 6px 16px; font-size: 16px; font-weight: 600; white-space: nowrap; }
+  .spacer { flex: 1; }
+  .rxdot { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 0 3px rgba(255,255,255,.18); }
+  .dot.on { background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.28); }
+  .clock { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  main { flex: 1; display: grid; gap: 16px; padding: 16px 20px 10px;
+    grid-template-columns: 1.15fr 1.15fr 1fr; grid-template-rows: auto minmax(0, 1.15fr) minmax(0, 1fr); min-height: 0; }
+  .cv { position: relative; }
+  .cv canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .card { background: var(--card); border: 1.5px solid var(--line); border-radius: 18px; padding: 16px 20px;
+    box-shadow: 0 2px 10px rgba(15,23,42,.05); min-height: 0; display: flex; flex-direction: column; }
+  .card h3 { margin: 0 0 8px; font-size: 15px; letter-spacing: .8px; text-transform: uppercase; color: var(--ink2); }
+  .now { grid-column: 1 / span 2; position: relative; overflow: hidden; }
+  .nowrow { display: flex; align-items: center; gap: 26px; flex: 1; }
+  .ring { width: 116px; height: 116px; border-radius: 50%; border: 10px solid var(--empty);
+    background: color-mix(in srgb, var(--empty) 14%, white); flex: none; transition: all .35s; }
+  .label { font-size: 76px; font-weight: 800; line-height: 1.02; transition: color .35s; }
+  .sub { font-size: 21px; color: var(--ink2); margin-top: 6px; }
+  .status { margin-top: 10px; display: inline-block; font-size: 17px; font-weight: 600; padding: 5px 14px;
+    border-radius: 999px; background: #eef2ff; color: #3730a3; border: 1.5px solid #c7d2fe; }
+  .diag { margin-top: 10px; font-size: 16px; color: #92400e; background: #fffbeb; border: 1.5px solid #fcd34d;
+    border-radius: 10px; padding: 8px 12px; }
+  .truth { position: absolute; top: 16px; right: 20px; font-size: 16px; color: var(--ink2);
+    background: #f8fafc; border: 1.5px dashed var(--line); padding: 6px 12px; border-radius: 10px; }
+  .risk .big { font-size: 64px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .meter { position: relative; height: 26px; border-radius: 999px; background: #f1f5f9; border: 1.5px solid var(--line);
+    overflow: visible; margin: 10px 0 6px; }
+  .meter .fill { height: 100%; border-radius: 999px; background: color-mix(in srgb, var(--walk) 55%, white);
+    width: 0%; transition: width .35s, background .35s; }
+  .meter .tau { position: absolute; top: -8px; bottom: -8px; width: 3px; background: var(--fall); border-radius: 2px; }
+  .meter .taul { position: absolute; top: -30px; transform: translateX(-50%); font-size: 14px; font-weight: 700; color: var(--fall); }
+  .risknote { font-size: 16px; color: var(--ink2); }
+  .rx { gap: 6px; }
+  .rxhead { display: flex; align-items: baseline; gap: 12px; }
+  .rxname { font-size: 22px; font-weight: 800; }
+  .rate { margin-left: auto; font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .rate small { font-size: 16px; font-weight: 600; color: var(--ink2); }
+  .rxmeta { font-size: 15px; color: var(--ink2); display: flex; gap: 14px; }
+  .wf { flex: 1; min-height: 90px; border-radius: 10px; border: 1.5px solid var(--line); overflow: hidden; }
+  .spark { height: 46px; flex: none; }
+  .probs .row { display: grid; grid-template-columns: 150px 1fr 56px; align-items: center; gap: 10px; margin: 7px 0; font-size: 18px; }
+  .bar { height: 18px; border-radius: 999px; background: #f1f5f9; border: 1.2px solid var(--line); overflow: hidden; }
+  .bar span { display: block; height: 100%; border-radius: 999px; width: 0%; transition: width .35s; }
+  .pct { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .motion { grid-column: 1 / span 2; }
+  .motion .cv { flex: 1; min-height: 110px; }
+  .legend { display: flex; gap: 18px; font-size: 15px; color: var(--ink2); margin-bottom: 4px; }
+  .legend i { display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .events { overflow: hidden; }
+  .ev { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: center; padding: 7px 10px;
+    border-radius: 12px; margin: 5px 0; font-size: 17px; border: 1.5px solid var(--line); }
+  .ev b { font-weight: 800; }
+  .ev .t { font-variant-numeric: tabular-nums; color: var(--ink2); }
+  .ev .p { font-size: 14px; color: var(--ink2); }
+  .empty-msg { color: var(--muted); font-size: 17px; margin-top: 8px; }
+  footer { padding: 6px 22px 12px; font-size: 14px; color: var(--ink2); display: flex; gap: 18px; flex-wrap: wrap; }
+  footer b { color: var(--ink); }
+  #alert { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 10;
+    box-shadow: inset 0 0 0 10px var(--fall); animation: glow 1s ease-in-out infinite alternate; }
+  #alert .banner { position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    background: color-mix(in srgb, var(--fall) 90%, white); color: #fff; font-size: 40px; font-weight: 900;
+    letter-spacing: 2px; padding: 6px 40px 8px; border-radius: 18px; border: 3px solid #fff; white-space: nowrap;
+    box-shadow: 0 10px 40px rgba(220,38,38,.45); text-align: center; }
+  #alert .banner small { display: block; font-size: 16px; font-weight: 600; letter-spacing: .4px; }
+  @keyframes glow { from { box-shadow: inset 0 0 0 6px rgba(220,38,38,.55); } to { box-shadow: inset 0 0 0 16px rgba(220,38,38,.95); } }
+  #offline { position: fixed; bottom: 14px; right: 18px; background: #fff7ed; color: #9a3412; border: 1.5px solid #fdba74;
+    padding: 8px 14px; border-radius: 10px; font-size: 15px; display: none; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">WiFeye <small>Wi-Fi fall &amp; activity sensing · no camera, nothing to wear</small></div>
+  <span class="chip" id="mode">connecting…</span>
+  <div class="spacer"></div>
+  <span class="rxdot"><span class="dot" id="d_rx1"></span>RX1</span>
+  <span class="rxdot"><span class="dot" id="d_rx2"></span>RX2</span>
+  <span class="clock" id="clock">--:--:--</span>
+</header>
+
+<main>
+  <section class="card now">
+    <h3>Now detected</h3>
+    <div class="truth" id="truth" style="display:none"></div>
+    <div class="nowrow">
+      <div class="ring" id="ring"></div>
+      <div>
+        <div class="label" id="label">Listening…</div>
+        <div class="sub" id="sub">waiting for the first event</div>
+        <div class="status" id="status">starting</div>
+      </div>
+    </div>
+    <div class="diag" id="diag" style="display:none"></div>
+  </section>
+
+  <section class="card risk">
+    <h3>Fall risk</h3>
+    <div class="big" id="pfall">–</div>
+    <div class="meter"><div class="fill" id="pbar"></div><div class="tau" id="tau"></div><div class="taul" id="taul">alarm τ</div></div>
+    <div class="risknote" id="risknote">FALL is raised when P(fall) crosses the alarm threshold τ.</div>
+  </section>
+
+  <section class="card rx" id="card_rx1">
+    <div class="rxhead"><span class="rxname" style="color:var(--rx1)">RX1</span><span class="rxmeta" id="m_rx1"></span>
+      <span class="rate" id="r_rx1">0<small> pkt/s</small></span></div>
+    <div class="cv spark"><canvas id="s_rx1"></canvas></div>
+    <div class="cv wf"><canvas id="w_rx1"></canvas></div>
+  </section>
+
+  <section class="card rx" id="card_rx2">
+    <div class="rxhead"><span class="rxname" style="color:var(--rx2)">RX2</span><span class="rxmeta" id="m_rx2"></span>
+      <span class="rate" id="r_rx2">0<small> pkt/s</small></span></div>
+    <div class="cv spark"><canvas id="s_rx2"></canvas></div>
+    <div class="cv wf"><canvas id="w_rx2"></canvas></div>
+  </section>
+
+  <section class="card probs">
+    <h3>Class probabilities (last event)</h3>
+    <div id="probs"></div>
+  </section>
+
+  <section class="card motion">
+    <h3>Live motion (× quiet level)</h3>
+    <div class="legend"><span><i style="background:var(--rx1)"></i>RX1</span><span><i style="background:var(--rx2)"></i>RX2</span>
+      <span>last 12 s · CSI waterfalls above: rows = 52 subcarriers, darker = more change</span></div>
+    <div class="cv"><canvas id="mchart"></canvas></div>
+  </section>
+
+  <section class="card events">
+    <h3>Recent events</h3>
+    <div id="events"><div class="empty-msg">No events yet.</div></div>
+  </section>
+</main>
+
+<footer>
+  <span><b>Model</b> <span id="f_model">–</span></span>
+  <span><b>Alarm τ</b> <span id="f_tau">–</span></span>
+  <span><b>Decisions</b> <span id="f_dec">0</span></span>
+  <span><b>Pipeline</b> packet filter → 100 Hz clean-up → fused localiser → two-head forest → decision</span>
+  <span class="spacer"></span>
+  <span><b>Uptime</b> <span id="f_up">0 s</span></span>
+</footer>
+
+<div id="alert"><div class="banner">FALL DETECTED<small id="alertsub">alarm raised</small></div></div>
+<div id="offline">Engine not responding: is live_demo_engine.py running with --ui?</div>
+
+<script>
+const COL = { fall: "#dc2626", walk: "#2563eb", posture: "#7c3aed", hand: "#d97706", empty_room: "#64748b",
+              sit: "#7c3aed", stand: "#7c3aed" };
+const NAMES = { fall: "Fall", walk: "Walking", posture: "Posture change", hand: "Hand gesture", empty_room: "No activity" };
+const RXC = { rx1: "#2563eb", rx2: "#0d9488" };
+const STOPS = [[255,255,255],[205,226,251],[158,197,244],[109,167,236],[57,135,229],[37,106,191],[13,54,107]];
+const $ = id => document.getElementById(id);
+
+function fit(c) {                       // crisp canvas at device pixel ratio
+  const r = c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  if (c.width !== Math.round(r.width * d) || c.height !== Math.round(r.height * d)) {
+    c.width = Math.round(r.width * d); c.height = Math.round(r.height * d);
+  }
+  const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); return [g, r.width, r.height];
+}
+function cmap(v) {
+  v = Math.max(0, Math.min(1, v)) * (STOPS.length - 1);
+  const i = Math.min(STOPS.length - 2, Math.floor(v)), f = v - i, a = STOPS[i], b = STOPS[i + 1];
+  return `rgb(${a[0] + (b[0] - a[0]) * f | 0},${a[1] + (b[1] - a[1]) * f | 0},${a[2] + (b[2] - a[2]) * f | 0})`;
+}
+function waterfall(c, cols) {
+  const [g, w, h] = fit(c); g.clearRect(0, 0, w, h);
+  if (!cols || !cols.length) { g.fillStyle = "#94a3b8"; g.font = "15px Segoe UI"; g.fillText("no data", 12, 24); return; }
+  const n = 48, k = cols[0].length, cw = w / n, ch = h / k, off = n - cols.length;
+  cols.forEach((col, j) => col.forEach((v, i) => { g.fillStyle = cmap(v); g.fillRect((off + j) * cw, h - (i + 1) * ch, cw + 0.6, ch + 0.6); }));
+}
+function spark(c, vals, color) {
+  const [g, w, h] = fit(c); g.clearRect(0, 0, w, h);
+  if (!vals || vals.length < 2) return;
+  const mx = Math.max(100, ...vals) * 1.1, n = 48, dx = w / (n - 1), off = n - vals.length;
+  g.beginPath(); vals.forEach((v, i) => { const x = (off + i) * dx, y = h - 3 - (v / mx) * (h - 6); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+  g.strokeStyle = color; g.lineWidth = 2.5; g.stroke();
+  g.lineTo((off + vals.length - 1) * dx, h); g.lineTo(off * dx, h); g.closePath();
+  g.fillStyle = color + "22"; g.fill();
+}
+function motionChart(c, series) {
+  const [g, w, h] = fit(c); g.clearRect(0, 0, w, h);
+  const all = [].concat(...Object.values(series)); const mx = Math.max(3, ...all) * 1.15, n = 48;
+  g.strokeStyle = "#e2e8f0"; g.lineWidth = 1; g.font = "13px Segoe UI"; g.fillStyle = "#94a3b8";
+  for (let k = 1; k <= 3; k++) { const v = Math.round(mx * k / 4), y = h - 20 - (v / mx) * (h - 30);
+    g.beginPath(); g.moveTo(34, y); g.lineTo(w, y); g.stroke(); g.fillText(v + "×", 2, y + 4); }
+  Object.entries(series).forEach(([rx, vals]) => {
+    if (!vals || vals.length < 2) return;
+    const dx = (w - 36) / (n - 1), off = n - vals.length;
+    g.beginPath(); vals.forEach((v, i) => { const x = 36 + (off + i) * dx, y = h - 20 - (v / mx) * (h - 30); i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.strokeStyle = RXC[rx]; g.lineWidth = 3; g.lineJoin = "round"; g.stroke();
+    g.lineTo(36 + (off + vals.length - 1) * dx, h - 20); g.lineTo(36 + off * dx, h - 20); g.closePath();
+    g.fillStyle = RXC[rx] + "1f"; g.fill();
+  });
+  g.fillStyle = "#94a3b8"; g.fillText("−12 s", 36, h - 4); g.fillText("now", w - 28, h - 4);
+}
+function setRing(color) { const r = $("ring"); r.style.borderColor = color; r.style.background = color + "22"; }
+
+function render(s) {
+  $("offline").style.display = "none";
+  if (!s.ready) return;
+  $("mode").textContent = s.mode; $("clock").textContent = s.clock;
+  $("f_up").textContent = s.uptime + " s"; $("f_dec").textContent = s.decisions;
+  $("f_model").textContent = s.model.name; $("f_tau").textContent = s.model.tau.toFixed(3) + "  (≈" + s.model.far + "% false alarms)";
+  ["rx1", "rx2"].forEach(rx => {
+    const d = s.rx[rx], card = $("card_" + rx);
+    if (!d) { card.style.opacity = .35; $("d_" + rx).className = "dot"; return; }
+    card.style.opacity = d.used ? 1 : .55;
+    $("d_" + rx).className = "dot" + (d.used ? " on" : "");
+    $("r_" + rx).innerHTML = Math.round(d.rate) + "<small> pkt/s</small>";
+    $("m_" + rx).textContent = (d.alive ? "online" : "offline") + " · " + d.total.toLocaleString() + " packets" +
+      (d.serial_hz !== null && d.serial_hz !== undefined ? " · serial " + Math.round(d.serial_hz) + "/s" : "") +
+      (rx === "rx2" && d.lag_ms !== null && d.lag_ms !== undefined ? " · delay " + d.lag_ms + " ms" : "") +
+      (d.alive && !d.used ? " · LOW RATE · not used" : (d.alive && d.rate < 40 ? " · LOW RATE" : ""));
+    spark($("s_" + rx), d.rate_hist, RXC[rx]); waterfall($("w_" + rx), d.waterfall);
+  });
+  const ser = {}; Object.keys(s.rx).forEach(rx => ser[rx] = s.rx[rx].motion); motionChart($("mchart"), ser);
+
+  const e = s.event;
+  if (s.warmup_left > 0) { $("label").textContent = "Warming up…"; $("label").style.color = "#475569";
+    $("sub").textContent = "filling the 10 s buffer: " + Math.ceil(s.warmup_left) + " s left"; setRing("#94a3b8"); }
+  else if (e) {
+    const c = COL[e.label] || "#334155";
+    $("label").textContent = e.display; $("label").style.color = c; setRing(c);
+    $("sub").textContent = `${e.age.toFixed(0)} s ago · ${e.receivers.join(" + ")} · decided ${e.latency.toFixed(1)} s after the movement`;
+  } else {
+    const usb = /PLUG IN|CANNOT OPEN|NOT FOUND/.test(s.status || "");
+    $("label").textContent = usb ? "Plug in the ESP32" : "Listening…";
+    $("label").style.color = usb ? "#d97706" : "#475569"; setRing(usb ? "#d97706" : "#94a3b8");
+    $("sub").textContent = usb ? "the engine is running and waiting for the receiver on USB"
+                               : "waiting for the first event";
+  }
+  $("status").textContent = s.burst ? "motion burst · analysing" : (s.status || "running");
+  if (s.diag) { $("diag").style.display = "block"; $("diag").textContent = "⚠ " + s.diag; }
+  else $("diag").style.display = "none";
+  if (s.truth) { $("truth").style.display = "block"; $("truth").textContent = "replay · ground truth: " + s.truth; }
+  else $("truth").style.display = "none";
+
+  const tau = s.model.tau, pf = e ? e.p_fall : 0;
+  $("pfall").textContent = e ? pf.toFixed(2) : "–"; $("pfall").style.color = pf >= tau ? "#dc2626" : "#0f172a";
+  $("pbar").style.width = (pf * 100) + "%"; $("pbar").style.background = pf >= tau ? "#f87171" : "#93c5fd";
+  $("tau").style.left = (tau * 100) + "%"; $("taul").style.left = (tau * 100) + "%";
+  $("risknote").textContent = e ? (pf >= tau ? "Above τ: FALL alarm raised." : "Below τ: no alarm.") :
+    "FALL is raised when P(fall) crosses the alarm threshold τ.";
+
+  const cls = s.model.classes;
+  $("probs").innerHTML = cls.map(c => { const p = e && e.probs[c] !== undefined ? e.probs[c] : 0;
+    return `<div class="row"><span>${NAMES[c] || c}</span><div class="bar"><span style="width:${(p * 100).toFixed(1)}%;background:${COL[c]}"></span></div><span class="pct">${Math.round(p * 100)}%</span></div>`; }).join("");
+
+  $("events").innerHTML = s.history.length ? s.history.map(h => {
+    const c = COL[h.label] || "#334155";
+    return `<div class="ev" style="background:${c}14;border-color:${c}66"><span class="t">${h.time}</span><b style="color:${c}">${h.display}</b><span class="p">P(fall) ${h.p_fall.toFixed(2)} · ${h.rx}</span></div>`; }).join("")
+    : '<div class="empty-msg">No events yet.</div>';
+
+  $("alert").style.display = s.alert ? "block" : "none";
+  if (s.alert && e) $("alertsub").textContent = `P(fall) ${e.p_fall.toFixed(2)} ≥ τ ${tau.toFixed(2)} · ${e.receivers.join(" + ")}`;
+}
+
+async function poll() {
+  try { const r = await fetch("/state", { cache: "no-store" }); render(await r.json()); }
+  catch (err) { $("offline").style.display = "block"; }
+}
+setInterval(poll, 300); poll();
+window.addEventListener("resize", poll);
+</script>
+</body>
+</html>

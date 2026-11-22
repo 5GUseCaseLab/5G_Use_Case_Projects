@@ -1,0 +1,81 @@
+{
+  "passed": [
+    "F7_eig_entropy_rx2",
+    "F7_eig_entropy_rx1",
+    "F7_pc1_share_rx2",
+    "F7_mean_abs_r_rx2",
+    "F7_mean_abs_r_rx1",
+    "F7_pc1_share_rx1",
+    "F2_frac_0.3_1.5_rx1",
+    "F2_peak_freq_rx1",
+    "F9_fringe_rate_rx1",
+    "F2_centroid_at_peak_rx1",
+    "F8_p90_p10_rx1",
+    "F5_decorr_lag_s_rx1",
+    "F2_frac_3_5_rx1",
+    "F11_rssi_change_rx1",
+    "F11_rssi_std_event_rx2",
+    "F11_rssi_change_rx2",
+    "F11_rssi_std_event_rx1",
+    "F6_approx_lt0.8Hz_rx2",
+    "F8_p90_p10_rx2",
+    "F8_zcr_rx1",
+    "F6_3_6Hz_rx2",
+    "F1_sitstand_proj_rx2",
+    "F2_frac_3_5_rx2",
+    "F2_centroid_at_peak_rx2",
+    "F8_mad_rx2",
+    "F8_iqr_rx2",
+    "F1_sitstand_cos_rx2",
+    "F1_sitstand_proj_rx1",
+    "F8_zcr_rx2",
+    "F5_decorr_lag_s_rx2",
+    "F9_fringe_rate_rx2",
+    "F3_burst_ratio_rx1",
+    "F8_iqr_rx1",
+    "F1_sitstand_cos_rx1",
+    "F3_decline_1s_rx1",
+    "F2_frac_0.3_1.5_rx2",
+    "F6_3_6Hz_rx1",
+    "F8_mad_rx1",
+    "F2_peak_freq_rx2",
+    "F4_dtw_fall_rx1",
+    "F3_post_over_pre_rx1",
+    "F5_period_peak_rx1",
+    "F3_burst_ratio_rx2",
+    "F4_dtw_stand_rx1",
+    "F6_approx_lt0.8Hz_rx1",
+    "F8_mean_abs_deriv_rx2",
+    "F5_period_peak_rx2",
+    "F4_dtw_walk_rx1",
+    "F3_decline_1s_rx2",
+    "F3_post_over_pre_rx2",
+    "F4_dtw_hand_rx1",
+    "F4_dtw_sit_rx1",
+    "F1_fall_proj_rx1",
+    "F2_centroid_slope_rx2",
+    "F7_n90_rx1",
+    "F1_fall_proj_rx2",
+    "F3_rise_1s_rx1",
+    "F6_0.8_1.6Hz_rx1",
+    "F4_dtw_empty_room_rx1"
+  ],
+  "best_existing": {
+    "sit_stand": [
+      "w2_tier_motion_entropy_mean",
+      0.6474
+    ],
+    "hand_empty": [
+      "w2_tier_motion_entropy_max",
+      0.8986666666666667
+    ],
+    "fall_sit": [
+      "w1_ext_motion_rx1_max",
+      0.7863291139240507
+    ],
+    "fall_adl": [
+      "w1_ext_motion_rx1_max",
+      0.7479746835443039
+    ]
+  }
+}

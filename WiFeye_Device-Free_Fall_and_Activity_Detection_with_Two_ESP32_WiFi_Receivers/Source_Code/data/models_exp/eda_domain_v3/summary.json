@@ -1,0 +1,77 @@
+{
+  "per_family": {
+    "F1": {
+      "n": 6,
+      "passed": 4,
+      "best_auc": 0.6995
+    },
+    "F10": {
+      "n": 3,
+      "passed": 0,
+      "best_auc": 0.5873333333333333
+    },
+    "F11": {
+      "n": 6,
+      "passed": 3,
+      "best_auc": 0.7389
+    },
+    "F2": {
+      "n": 12,
+      "passed": 5,
+      "best_auc": 0.8103333333333333
+    },
+    "F3": {
+      "n": 8,
+      "passed": 5,
+      "best_auc": 0.6635443037974684
+    },
+    "F4": {
+      "n": 14,
+      "passed": 6,
+      "best_auc": 0.6389873417721519
+    },
+    "F5": {
+      "n": 8,
+      "passed": 3,
+      "best_auc": 0.7498333333333334
+    },
+    "F6": {
+      "n": 8,
+      "passed": 3,
+      "best_auc": 0.7163291139240505
+    },
+    "F7": {
+      "n": 8,
+      "passed": 0,
+      "best_auc": 0.9229999999999999
+    },
+    "F8": {
+      "n": 10,
+      "passed": 6,
+      "best_auc": 0.7660759493670887
+    },
+    "F9": {
+      "n": 2,
+      "passed": 0,
+      "best_auc": 0.7775000000000001
+    }
+  },
+  "best_existing": {
+    "sit_stand": [
+      "w2_tier_motion_entropy_mean",
+      0.6474
+    ],
+    "hand_empty": [
+      "w2_tier_motion_entropy_max",
+      0.8986666666666667
+    ],
+    "fall_sit": [
+      "w1_ext_motion_rx1_max",
+      0.7863291139240507
+    ],
+    "fall_adl": [
+      "w1_ext_motion_rx1_max",
+      0.7479746835443039
+    ]
+  }
+}
