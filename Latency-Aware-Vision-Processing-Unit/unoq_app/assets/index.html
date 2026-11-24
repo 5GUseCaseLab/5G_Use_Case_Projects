@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision Processing Unit</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Vision Processing Unit</h1>
+  <span id="modeBadge" class="badge">–</span>
+  <span id="alertBadge" class="badge ok">CLEAR</span>
+</header>
+<div class="conn">
+  <input id="url" type="text" value="ws://10.56.6.16:8765" placeholder="ws://10.56.6.16:8765" autocomplete="off">
+  <button id="apply" type="button">Connect</button>
+  <span id="linkMsg" class="warn">starting…</span>
+</div>
+<div id="advice" class="advice lvl0">
+  <div class="advMain"><b id="advTitle">CLEAR</b><span id="advAction">Road ahead is clear</span></div>
+  <small id="advDetail"></small>
+</div>
+<main>
+  <section class="video">
+    <div class="stage"><img id="img" alt=""><canvas id="ov"></canvas></div>
+    <div class="controls">
+      <div class="src" id="src">Source: –</div>
+      <label>Upload a video (mp4 / avi / mov)
+        <input id="file" type="file" accept="video/*">
+      </label>
+      <button id="upload" type="button">Upload &amp; play</button>
+      <div class="bar"><div id="bar"></div></div>
+      <label>…or video path already on the board
+        <input id="path" type="text" placeholder="/home/arduino/videos/drive.mp4">
+      </label>
+      <div class="row">
+        <button id="playPath" type="button">Play path</button>
+        <button id="restart" type="button">Restart video</button>
+        <button id="useCam" type="button">Use camera</button>
+      </div>
+      <label>Mode
+        <select id="mode"><option>auto</option><option>local</option><option>remote</option></select>
+      </label>
+      <label>Frame-diff threshold <b id="thrV">3.0</b>
+        <input id="thr" type="range" min="0" max="20" step="0.5" value="3">
+      </label>
+      <label>Always process at least every <b id="ageV">0.5</b> s (even if nothing changed)
+        <input id="age" type="range" min="0.1" max="2" step="0.1" value="0.5">
+      </label>
+      <label>Prefer laptop (higher = use laptop more) <b id="biasV">4.0</b>
+        <input id="bias" type="range" min="1" max="8" step="0.5" value="4">
+      </label>
+      <fieldset class="cal">
+        <legend>Calibration (this is what makes distance accurate)</legend>
+        <label>Horizon line <b id="horV">45</b>% from the top. Slide until the dashed line sits on the real horizon in the video.
+          <input id="horizon" type="range" min="20" max="70" step="1" value="45">
+        </label>
+        <label>Camera height above the road (m)
+          <input id="camh" type="number" min="0.5" max="3" step="0.1" value="1.3">
+        </label>
+        <label>Camera horizontal field of view (deg)
+          <input id="hfov" type="number" min="20" max="150" step="1" value="70">
+        </label>
+        <label>Direction of travel (FOE) column, 0 = left edge, 1 = right edge (0.5 = camera points straight ahead)
+          <input id="foe" type="number" min="0.2" max="0.8" step="0.005" value="0.5">
+        </label>
+        <label>My speed from
+          <select id="egoMode"><option value="auto">auto: laptop optical flow, else the box below</option>
+            <option value="manual">only the box below</option><option value="off">off (relative speeds only)</option></select>
+        </label>
+        <label>My speed (km/h), used when the laptop cannot measure it. Shows how fast other vehicles really go.
+          <input id="ego" type="number" min="0" max="250" step="1" value="0">
+        </label>
+        <label class="chk"><input id="sound" type="checkbox"> Warning sound</label>
+      </fieldset>
+    </div>
+  </section>
+  <section class="side">
+    <canvas id="radar" width="360" height="300"></canvas>
+    <div class="stats" id="stats"></div>
+    <table>
+      <thead><tr><th>ID</th><th>Class</th><th>Distance</th><th>Relative speed</th><th>Over ground</th><th>Position</th><th>Impact in</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="note">"Relative speed" is as seen from the camera; "Over ground" needs my speed (laptop optical flow or the box). Distance assumes a flat road and the calibration on the left.</p>
+  </section>
+</main>
+<script src="libs/socket.io.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
