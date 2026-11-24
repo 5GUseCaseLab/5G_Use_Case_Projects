@@ -1,0 +1,4 @@
+path,server,source,predictions_n,frames_sent,mean_round_trip_ms,date
+5G CPE local network (board Wi-Fi -> CPE -> MEC wired),"MEC 5glabmec16, CPU",recorded clips replayed on the UNO Q,343,705,34.2,2026-11-09
+Campus network (board Wi-Fi -> campus -> laptop),MacBook (laptop),recorded clips replayed on the UNO Q,348,719,165.9,2026-10-29
+"Campus network, live CCTV camera",MacBook (laptop),live camera on the UNO Q,66,151,363.6,2026-10-29
