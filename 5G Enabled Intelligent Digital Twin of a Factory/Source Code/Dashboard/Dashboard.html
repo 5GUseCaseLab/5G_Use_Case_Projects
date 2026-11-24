@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SARM & UNO Q · Operator Console</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ============ LED SEGMENT FONTS ============ */
+@font-face{font-family:'DSEG7';src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2');font-display:block;}
+@font-face{font-family:'DSEG14';src:url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2') format('woff2');font-display:block;}
+
+:root{
+  --bg:#0b0d10;
+  --amber:#ffb21e; --green:#3dff74; --red:#ff3b30; --cyan:#35e0ff;
+  --text:#d9dee5; --muted:#8a94a3; --dim:#59626e;
+  --hazard:repeating-linear-gradient(-45deg,#f3b10a 0 12px,#121212 12px 24px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;}
+html,body{min-height:100%;}
+body{
+  margin:0;color:var(--text);background:var(--bg);
+  font-family:'Barlow Condensed','Segoe UI',Arial,sans-serif;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(28px + env(safe-area-inset-bottom,0px));
+  background-image:
+    radial-gradient(1200px 600px at 50% -200px, rgba(53,224,255,.06), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 4px),
+    linear-gradient(#101317,#0a0c0f);
+  background-attachment:fixed;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.console{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:12px;}
+
+/* ============ PANELS ============ */
+.panel{
+  position:relative;border-radius:12px;padding:14px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg,#262b32,#1a1e23);
+  border:1px solid #07080a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 -2px 0 rgba(0,0,0,.5), 0 14px 34px rgba(0,0,0,.5);
+}
+.screws::before{
+  content:'';position:absolute;inset:6px;pointer-events:none;
+  --s:radial-gradient(circle at 50% 50%, #9aa1a9 0 1.6px, #50565d 2px 3.4px, #1a1d21 3.8px 4.4px, transparent 4.8px);
+  background:var(--s) top left/10px 10px no-repeat, var(--s) top right/10px 10px no-repeat,
+             var(--s) bottom left/10px 10px no-repeat, var(--s) bottom right/10px 10px no-repeat;
+}
+.plate{
+  display:inline-flex;align-items:center;gap:6px;
+  font:600 11px/1 'Barlow Condensed',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#cfd5dc;
+  background:linear-gradient(#0d0f12,#08090b);padding:5px 9px;border-radius:3px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.07);
+  white-space:nowrap;
+}
+.mono{font-family:'Share Tech Mono',monospace;}
+
+/* ============ LCD / LED SEGMENT DISPLAYS ============ */
+.lcd{
+  position:relative;overflow:hidden;border-radius:6px;
+  display:flex;align-items:baseline;justify-content:flex-end;gap:6px;
+  padding:9px 11px 7px;
+  background:radial-gradient(130% 150% at 50% 0%, #131712, #040504 72%);
+  border:1px solid #000;
+  box-shadow:inset 0 0 0 2px #2a2f35, inset 0 4px 14px rgba(0,0,0,.95), 0 1px 0 rgba(255,255,255,.07);
+  transition:box-shadow .3s;
+}
+.lcd::after{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:6px;
+  background:
+    linear-gradient(168deg, rgba(255,255,255,.08), transparent 36%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+}
+.seg{
+  position:relative;white-space:nowrap;line-height:1.08;
+  font-family:'DSEG7','Share Tech Mono',monospace;font-size:30px;color:var(--amber);
+}
+.seg.t14{font-family:'DSEG14','Share Tech Mono',monospace;}
+.seg .g{position:absolute;right:0;top:0;opacity:.075;}
+.seg .v{position:relative;text-shadow:0 0 2px currentColor, 0 0 12px color-mix(in srgb, currentColor 60%, transparent), 0 0 26px color-mix(in srgb, currentColor 25%, transparent);}
+.seg.xl{font-size:44px;} .seg.lg{font-size:34px;} .seg.md{font-size:24px;} .seg.sm{font-size:16px;} .seg.xs{font-size:12px;}
+.seg[data-tone="green"]{color:var(--green);} .seg[data-tone="red"]{color:var(--red);}
+.seg[data-tone="cyan"]{color:var(--cyan);} .seg[data-tone="amber"]{color:var(--amber);}
+.seg[data-tone="dim"]{color:#6d7682;}
+.unit{font:600 13px 'Barlow Condensed',sans-serif;color:#7f8a96;letter-spacing:.08em;position:relative;z-index:1;}
+
+/* ============ READOUT TILES ============ */
+.ro{
+  background:linear-gradient(#171a1f,#121418);border-radius:9px;padding:8px 8px 9px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 2px 6px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;gap:7px;min-width:0;
+}
+.ro .head{display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.ro .sub{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+.ro.danger .lcd{box-shadow:inset 0 0 0 2px var(--red), inset 0 4px 14px rgba(0,0,0,.95), 0 0 20px rgba(255,59,48,.45);animation:dangerPulse 1.2s ease-in-out infinite;}
+@keyframes dangerPulse{50%{box-shadow:inset 0 0 0 2px var(--red), inset 0 4px 14px rgba(0,0,0,.95), 0 0 34px rgba(255,59,48,.75);}}
+.wide{grid-column:1/-1;}
+
+/* ============ PILOT LAMPS ============ */
+.lamp{
+  display:inline-block;width:13px;height:13px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 35% 30%, #4b5057, #1b1e22 70%);
+  box-shadow:0 0 0 2px #0b0c0e, 0 0 0 3px #3a3f46, inset 0 -2px 3px rgba(0,0,0,.6);
+}
+.lamp.g{background:radial-gradient(circle at 35% 30%, #e1ffe9, #3dff74 38%, #0c7a2e 80%);box-shadow:0 0 0 2px #0b0c0e,0 0 0 3px #3a3f46,0 0 12px #3dff74;}
+.lamp.a{background:radial-gradient(circle at 35% 30%, #fff1cf, #ffb21e 38%, #8a5a00 80%);box-shadow:0 0 0 2px #0b0c0e,0 0 0 3px #3a3f46,0 0 12px #ffb21e;}
+.lamp.r{background:radial-gradient(circle at 35% 30%, #ffd9d6, #ff3b30 38%, #7a0d08 80%);box-shadow:0 0 0 2px #0b0c0e,0 0 0 3px #3a3f46,0 0 12px #ff3b30;}
+.lamp.blink{animation:blink .8s steps(1) infinite;}
+@keyframes blink{50%{filter:brightness(.25);box-shadow:0 0 0 2px #0b0c0e,0 0 0 3px #3a3f46;}}
+
+/* ============ TOP BAR ============ */
+.topbar{padding:0;overflow:hidden;}
+.hz{height:8px;background:var(--hazard);opacity:.9;box-shadow:inset 0 -1px 0 rgba(0,0,0,.6);}
+.tb{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:12px;}
+.emblem{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;
+  background:linear-gradient(145deg,#30363e,#15181c);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 10px rgba(0,0,0,.5);}
+.t1{font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:.08em;color:#f1f4f8;line-height:1;}
+.t1 span{color:var(--amber);}
+.t2{font-size:12px;letter-spacing:.32em;color:var(--muted);margin-top:4px;}
+.links{display:flex;gap:16px;flex-wrap:wrap;}
+.lk{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.16em;color:#b9c1cb;}
+.clockbox{display:flex;align-items:center;gap:10px;}
+.clockbox .lcd{padding:7px 12px 5px;}
+
+/* ============ ANNUNCIATOR ============ */
+.annun-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.annun-head .lcd{flex:1;min-width:220px;justify-content:flex-start;}
+.ann-btns{display:flex;gap:14px;align-items:center;}
+.ann-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:6px;
+  padding:6px;background:#07080a;border-radius:8px;box-shadow:inset 0 2px 8px rgba(0,0,0,.9);}
+.al{
+  position:relative;min-height:52px;display:grid;place-items:center;text-align:center;padding:6px 8px;border-radius:4px;
+  font:700 12px/1.15 'Barlow Condensed',sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  color:#535b65;background:linear-gradient(#1b1f24,#14171b);
+  box-shadow:inset 0 0 0 1px #000, inset 0 1px 0 rgba(255,255,255,.05);
+  transition:background .15s,color .15s;
+}
+.al.on{color:#fff;background:radial-gradient(120% 120% at 50% 30%, #ff6a5c, #c4140b 70%);box-shadow:inset 0 0 0 1px #000, 0 0 18px rgba(255,59,48,.55);text-shadow:0 0 6px rgba(255,255,255,.6);}
+.al.on.flash{animation:annFlash .6s steps(1) infinite;}
+.al.test{color:#fff;background:radial-gradient(120% 120% at 50% 30%, #ffd36b, #d08a00 70%);}
+@keyframes annFlash{50%{color:#6b2a26;background:linear-gradient(#3a1513,#25100e);box-shadow:inset 0 0 0 1px #000;text-shadow:none;}}
+
+/* ============ STATIONS ============ */
+.st-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:2px 6px 12px;
+  border-bottom:1px solid rgba(0,0,0,.6);box-shadow:0 1px 0 rgba(255,255,255,.05);margin-bottom:12px;}
+.st-id{display:flex;align-items:center;gap:12px;}
+.st-num{font:800 26px/1 'Barlow Condensed';color:#111;background:var(--hazard);padding:6px 9px;border-radius:5px;
+  text-shadow:0 0 3px #f3b10a,0 0 3px #f3b10a,0 0 3px #f3b10a;box-shadow:inset 0 0 0 2px rgba(0,0,0,.5);}
+.st-name{font-size:22px;font-weight:800;letter-spacing:.1em;color:#f1f4f8;line-height:1;}
+.st-sub{font-size:12px;letter-spacing:.16em;color:var(--muted);margin-top:4px;text-transform:uppercase;}
+.st-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.badge{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--green);background:#050605;padding:6px 10px;border-radius:5px;
+  box-shadow:inset 0 0 0 1px #000, inset 0 2px 6px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06);text-shadow:0 0 6px rgba(61,255,116,.6);text-transform:uppercase;}
+.badge.stale{color:var(--red);text-shadow:0 0 6px rgba(255,59,48,.6);}
+.rx{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);}
+/* stack light (andon tower) */
+.stack{display:flex;flex-direction:column;gap:2px;padding:3px;background:#0a0b0d;border-radius:5px;box-shadow:inset 0 0 0 1px #000;}
+.stack i{width:22px;height:10px;border-radius:2px;background:#22262b;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
+.stack i.on.r{background:var(--red);box-shadow:0 0 10px var(--red);} .stack i.on.a{background:var(--amber);box-shadow:0 0 10px var(--amber);}
+.stack i.on.g{background:var(--green);box-shadow:0 0 10px var(--green);}
+.stack i.on.r.blink{animation:blink .6s steps(1) infinite;}
+
+.st-body{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);gap:14px;align-items:stretch;}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0;}
+.ro-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.dist-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.dist-grid .ro{padding:6px;} .dist-grid .lcd{padding:7px 8px 5px;justify-content:center;}
+
+/* ============ HMI SCREEN (3D viewport) ============ */
+.hmi{position:relative;border-radius:12px;padding:9px;min-height:440px;display:flex;
+  background:linear-gradient(#2e343b,#15181c);box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 8px 20px rgba(0,0,0,.5);}
+.screen{position:relative;flex:1;border-radius:8px;overflow:hidden;min-height:420px;
+  background:radial-gradient(120% 90% at 50% 25%, #1a2530, #090c10 72%);
+  box-shadow:inset 0 0 0 1px #000, inset 0 0 50px rgba(0,0,0,.85);}
+.screen::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px),
+             radial-gradient(130% 100% at 50% 50%, transparent 60%, rgba(0,0,0,.55));}
+.viewport{position:absolute;inset:0;cursor:grab;}
+.viewport:active{cursor:grabbing;}
+.viewport canvas{display:block;width:100%!important;height:100%!important;}
+.hud{position:absolute;z-index:2;pointer-events:none;font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:.06em;
+  color:#9fefff;text-shadow:0 0 6px rgba(53,224,255,.5);line-height:1.55;}
+.hud b{font-weight:400;color:#fff;letter-spacing:.14em;}
+.hud.tl{top:12px;left:14px;} .hud.tr{top:12px;right:14px;text-align:right;} .hud.bl{bottom:12px;left:14px;color:#62727f;text-shadow:none;}
+.hud .k{color:#62727f;}
+.hud .ok{color:var(--green);text-shadow:0 0 6px rgba(61,255,116,.6);} .hud .bad{color:var(--red);text-shadow:0 0 6px rgba(255,59,48,.6);}
+.hud .warn{color:var(--amber);text-shadow:0 0 6px rgba(255,178,30,.6);}
+.legend span.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 4px 0 10px;vertical-align:middle;}
+.sw.ok{background:var(--green);box-shadow:0 0 6px var(--green);} .sw.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);} .sw.bad{background:var(--red);box-shadow:0 0 6px var(--red);}
+.offline{position:absolute;inset:0;display:grid;place-items:center;font-family:'Share Tech Mono';color:var(--red);letter-spacing:.2em;}
+
+/* radar scope (PPI) */
+.scope{position:absolute;right:14px;bottom:14px;width:176px;height:176px;border-radius:50%;z-index:2;overflow:hidden;
+  background:radial-gradient(circle, #06210f, #020904 72%);
+  box-shadow:0 0 0 3px #2b3138, 0 0 0 6px #0b0d10, 0 8px 22px rgba(0,0,0,.7), inset 0 0 24px #000;}
+.scope .sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg, rgba(61,255,116,.38), transparent 28%);animation:spin 3s linear infinite;mix-blend-mode:screen;}
+.scope svg{position:absolute;inset:0;width:100%;height:100%;}
+.scope::after{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.1),transparent 40%);pointer-events:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ============ ANALOG METERS ============ */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.meter{background:linear-gradient(#171a1f,#111316);border-radius:10px;padding:8px 8px 4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 2px 6px rgba(0,0,0,.35);text-align:center;}
+.meter svg{width:100%;height:auto;display:block;}
+.meter .needle{transform-origin:100px 104px;transition:transform 1.1s cubic-bezier(.3,1.45,.5,1);}
+
+/* ============ CONTROL DECK & PUSHBUTTONS ============ */
+.deck{position:relative;border-radius:10px;padding:18px 14px 14px;
+  background:linear-gradient(#1d2126,#14171b);box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px #07080a;}
+.deck::before{content:'';position:absolute;left:0;right:0;top:0;height:5px;border-radius:10px 10px 0 0;background:var(--hazard);opacity:.75;}
+.deck-title{text-align:center;margin-bottom:12px;}
+.btn-row{display:flex;justify-content:space-around;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.pbw{display:flex;flex-direction:column;align-items:center;gap:9px;}
+.pb{
+  position:relative;width:92px;height:92px;border-radius:50%;border:none;padding:0;cursor:pointer;flex:none;
+  background:radial-gradient(circle at 50% 50%, #0b0d10 0 61%, transparent 62%),
+             conic-gradient(from 210deg,#eef1f4,#78808a,#f7f8fa,#59606a,#e2e6ea,#78808a,#eef1f4);
+  box-shadow:0 7px 14px rgba(0,0,0,.65), inset 0 0 0 1px rgba(0,0,0,.6);
+  -webkit-tap-highlight-color:transparent;
+}
+.pb .cap{
+  position:absolute;inset:12px;border-radius:50%;display:grid;place-items:center;
+  font:800 15px/1 'Barlow Condensed',sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.92);text-shadow:0 1px 2px rgba(0,0,0,.5);
+  background:radial-gradient(circle at 40% 28%, var(--c1), var(--c2) 52%, var(--c3));
+  box-shadow:0 5px 0 var(--c3), 0 7px 10px rgba(0,0,0,.7), inset 0 2px 3px rgba(255,255,255,.4), inset 0 -5px 9px rgba(0,0,0,.35);
+  transform:translateY(-3px);transition:transform .07s, box-shadow .07s, filter .25s;
+  filter:saturate(.7) brightness(.78);
+}
+.pb.lit .cap{filter:none;box-shadow:0 5px 0 var(--c3), 0 7px 10px rgba(0,0,0,.7), inset 0 2px 3px rgba(255,255,255,.45), inset 0 -5px 9px rgba(0,0,0,.25), 0 0 26px var(--c2), 0 0 60px color-mix(in srgb, var(--c2) 45%, transparent);}
+.pb:active .cap,.pb.press .cap{transform:translateY(1px);box-shadow:0 1px 0 var(--c3), 0 2px 4px rgba(0,0,0,.7), inset 0 2px 3px rgba(255,255,255,.3), inset 0 -3px 6px rgba(0,0,0,.35);}
+.pb.tx .cap{animation:txflash .55s ease-out;}
+@keyframes txflash{0%{filter:brightness(1.8) saturate(1.2);}100%{}}
+.pb:focus-visible{outline:2px solid var(--cyan);outline-offset:4px;}
+.pb.green{--c1:#b8ffcb;--c2:#18c94e;--c3:#085c22;}
+.pb.red{--c1:#ffb0aa;--c2:#e2231a;--c3:#6e0c08;}
+.pb.amber{--c1:#ffe6a6;--c2:#f2a20c;--c3:#6e4704;}
+.pb.white{--c1:#ffffff;--c2:#b9c0c8;--c3:#4c535b;}
+.pb.sm{width:58px;height:58px;} .pb.sm .cap{inset:8px;font-size:12px;}
+.pb.lg{width:104px;height:104px;} .pb.lg .cap{inset:13px;}
+.pb .cap small{display:block;font-size:10px;letter-spacing:.2em;opacity:.8;margin-top:3px;}
+
+/* ============ VERTICAL PWM FADER ============ */
+.unoq-deck{display:grid;grid-template-columns:auto auto 1fr;gap:18px;align-items:center;}
+.btn-col{display:flex;flex-direction:column;gap:14px;align-items:center;}
+.fader-box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.fader{position:relative;width:96px;height:250px;margin:14px 0;touch-action:none;cursor:ns-resize;outline:none;}
+.f-scale{position:absolute;left:0;top:0;bottom:0;width:44px;}
+.f-scale .tk{position:absolute;right:0;height:1px;background:#6c7580;}
+.f-scale .tk.maj{background:#c9d0d8;}
+.f-scale .tl{position:absolute;right:16px;transform:translateY(-50%);font:600 11px 'Share Tech Mono',monospace;color:#9aa4b0;}
+.f-slot{position:absolute;left:57px;top:-6px;bottom:-6px;width:12px;border-radius:6px;background:#020203;
+  box-shadow:inset 0 2px 5px #000, 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px #2c3137;}
+.f-track{position:absolute;left:57px;top:0;bottom:0;width:12px;}
+.f-fill{position:absolute;left:3px;right:3px;border-radius:3px;background:var(--amber);box-shadow:0 0 10px var(--amber);}
+.f-fill.neg{background:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+.f-zero{position:absolute;left:44px;width:38px;top:50%;height:2px;margin-top:-1px;background:#f3b10a;opacity:.7;}
+.f-knob{position:absolute;left:40px;width:46px;height:30px;margin-top:-15px;border-radius:5px;pointer-events:none;
+  background:linear-gradient(#6b737d,#2b3036 55%,#1d2125);
+  box-shadow:0 6px 10px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.6);}
+.f-knob::before{content:'';position:absolute;inset:5px 5px;border-radius:2px;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.55) 0 1px, rgba(255,255,255,.14) 1px 2px, transparent 2px 4px);}
+.f-knob::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:#fff;box-shadow:0 0 6px #fff;}
+.fader:focus-visible .f-knob{box-shadow:0 0 0 2px var(--cyan),0 6px 10px rgba(0,0,0,.75);}
+.pwm-panel{display:flex;flex-direction:column;gap:10px;align-items:stretch;min-width:0;}
+.pwm-panel .pbw{margin-top:4px;}
+.presets{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.chip{font:700 11px 'Share Tech Mono',monospace;color:#c9d0d8;background:linear-gradient(#2c3137,#1b1f23);border:none;border-radius:4px;padding:6px 8px;cursor:pointer;
+  box-shadow:0 2px 0 #090a0c, inset 0 1px 0 rgba(255,255,255,.12);}
+.chip:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);}
+
+/* ============ TRENDS + LOG ============ */
+.bottom{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;}
+.trend-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.trend{background:#060807;border-radius:8px;padding:8px 10px 6px;box-shadow:inset 0 0 0 1px #000, inset 0 2px 10px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.05);}
+.trend .th{display:flex;justify-content:space-between;align-items:baseline;font-family:'Share Tech Mono';font-size:11px;color:#7b8794;letter-spacing:.08em;}
+.trend canvas{display:block;width:100%;height:92px;margin-top:4px;}
+.log{margin-top:12px;height:262px;overflow:auto;background:#050605;border-radius:8px;padding:8px 10px;font-family:'Share Tech Mono',monospace;font-size:12px;
+  box-shadow:inset 0 0 0 1px #000, inset 0 2px 10px rgba(0,0,0,.9);scrollbar-width:thin;scrollbar-color:#2a3036 transparent;}
+.log-row{display:flex;gap:8px;padding:2px 0;border-bottom:1px dashed rgba(255,255,255,.04);color:#a9b4bf;animation:logIn .35s ease-out;}
+@keyframes logIn{from{background:rgba(61,255,116,.12);}to{background:transparent;}}
+.log-row .lt{color:#55606c;flex:none;}
+.log-row .ltag{flex:none;width:46px;color:var(--cyan);}
+.log-row.ok .ltag{color:var(--green);} .log-row.warn .ltag{color:var(--amber);} .log-row.err .ltag,.log-row.alarm .ltag{color:var(--red);}
+.log-row.alarm .lm{color:#ffb4ae;} .log-row.tx .ltag{color:var(--amber);}
+.panel-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+footer{text-align:center;font-family:'Share Tech Mono';font-size:11px;color:#4c5560;letter-spacing:.1em;padding-top:4px;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:1060px){
+  .st-body{grid-template-columns:1fr;}
+  .hmi{min-height:380px;} .screen{min-height:360px;}
+  .bottom{grid-template-columns:1fr;}
+}
+@media (max-width:620px){
+  body{padding-left:8px;padding-right:8px;}
+  .panel{padding:10px;}
+  .seg.xl{font-size:34px;} .seg.lg{font-size:28px;} .seg.md{font-size:20px;}
+  .dist-grid{grid-template-columns:repeat(2,1fr);}
+  .scope{width:112px;height:112px;right:8px;bottom:8px;}
+  .hud.legend{display:none;}
+  .hud{font-size:11px;}
+  .hmi{min-height:340px;} .screen{min-height:320px;}
+  .unoq-deck{grid-template-columns:auto 1fr;}
+  .unoq-deck .pwm-panel{grid-column:1/-1;}
+  .trend-grid{grid-template-columns:1fr;}
+  .links{gap:10px;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0s!important;transition-duration:0s!important;}
+}
+</style>
+</head>
+<body>
+<div class="console">
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="panel topbar">
+    <div class="hz"></div>
+    <div class="tb">
+      <div class="brand">
+        <div class="emblem">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffb21e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/><circle cx="12" cy="12" r="3.2"/><path d="M12 5.5v3.3M12 15.2v3.3M6.4 8.8l2.9 1.6M14.7 13.6l2.9 1.6M6.4 15.2l2.9-1.6M14.7 10.4l2.9-1.6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="t1">SARM <span>·</span> UNO&nbsp;Q</div>
+          <div class="t2">DIGITAL TWIN · OPERATOR CONSOLE</div>
+        </div>
+      </div>
+      <div class="links">
+        <div class="lk"><i class="lamp" id="lamp-api"></i>CLOUD API</div>
+        <div class="lk"><i class="lamp" id="lamp-sarm"></i>SARM-01 LINK</div>
+        <div class="lk"><i class="lamp" id="lamp-unoq"></i>UNO-Q LINK</div>
+      </div>
+      <div class="clockbox">
+        <span class="plate">LOCAL</span>
+        <div class="lcd"><div class="seg md" id="clock" data-tone="cyan"></div></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== ANNUNCIATOR ===================== -->
+  <section class="panel screws">
+    <div class="annun-head">
+      <span class="plate">⚠ Alarm annunciator</span>
+      <div class="lcd"><div class="seg t14 sm" id="ann-msg" data-tone="green"></div></div>
+      <div class="ann-btns">
+        <div class="pbw"><button class="pb sm amber" id="btn-ack" title="Acknowledge alarms (stops flashing)"><span class="cap">ACK</span></button></div>
+        <div class="pbw"><button class="pb sm white" id="btn-test" title="Lamp test"><span class="cap">TEST</span></button></div>
+      </div>
+    </div>
+    <div class="ann-grid" id="ann-grid"></div>
+  </section>
+
+  <!-- ===================== STATION 01 : SARM ===================== -->
+  <section class="panel screws" id="st-sarm">
+    <div class="st-head">
+      <div class="st-id">
+        <span class="st-num">01</span>
+        <div><div class="st-name">SARM-ROBOT-01</div><div class="st-sub">Arduino Nano · Mobile manipulator · 4× ultrasonic</div></div>
+      </div>
+      <div class="st-meta">
+        <span class="rx" id="sarm-rx">RX 0</span>
+        <span class="badge" id="sarm-updated">Waiting…</span>
+        <div class="stack" id="stack-sarm"><i class="r"></i><i class="a"></i><i class="g"></i></div>
+      </div>
+    </div>
+
+    <div class="st-body">
+      <div class="hmi">
+        <div class="screen">
+          <div id="robotScene" class="viewport"></div>
+          <div class="hud tl"><b>3D PROXIMITY SCAN</b><br>
+            <span class="k">DRIVE</span> <span id="hud-drive">--</span> &nbsp;<span class="k">FAN</span> <span id="hud-fan">--</span><br>
+            <span class="k">NEAREST</span> <span id="hud-near">--</span></div>
+          <div class="hud tr legend"><span class="sw ok"></span>&gt;40 cm<span class="sw warn"></span>15–40<span class="sw bad"></span>&lt;15</div>
+          <div class="hud bl">⟲ DRAG TO ORBIT</div>
+          <div class="scope"><div class="sweep"></div><svg id="radar" class="radar" viewBox="0 0 240 240"></svg></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="ro-grid">
+          <div class="ro" id="c-temp">
+            <div class="head"><span class="plate">Temperature</span></div>
+            <div class="lcd"><div class="seg lg" id="sarm-temp"></div><span class="unit">°C</span></div>
+          </div>
+          <div class="ro" id="c-hum">
+            <div class="head"><span class="plate">Humidity</span></div>
+            <div class="lcd"><div class="seg lg" id="sarm-hum"></div><span class="unit">%RH</span></div>
+          </div>
+          <div class="ro" id="c-fan">
+            <div class="head"><span class="plate">Cooling fan</span><i class="lamp" id="lamp-fan"></i></div>
+            <div class="lcd"><div class="seg t14 md" id="sarm-fan"></div></div>
+            <div class="sub"><span>Mode</span><div class="lcd" style="padding:4px 8px 3px"><div class="seg t14 xs" id="sarm-fan-mode" data-tone="cyan"></div></div></div>
+          </div>
+          <div class="ro" id="c-motor">
+            <div class="head"><span class="plate">Drive motor</span><i class="lamp" id="lamp-motor"></i></div>
+            <div class="lcd"><div class="seg t14 md" id="sarm-motor"></div></div>
+            <div class="sub"><span>Requested</span><div class="lcd" style="padding:4px 8px 3px"><div class="seg t14 xs" id="sarm-motor-req" data-tone="cyan"></div></div></div>
+          </div>
+          <div class="ro wide" id="c-obs">
+            <div class="head"><span class="plate">Obstacle detection</span><i class="lamp" id="lamp-obs"></i></div>
+            <div class="lcd" style="justify-content:center"><div class="seg t14 lg" id="sarm-obstacle"></div></div>
+          </div>
+        </div>
+
+        <div class="dist-grid">
+          <div class="ro"><div class="head"><span class="plate">Front</span></div><div class="lcd"><div class="seg md" id="d-front"></div><span class="unit">cm</span></div></div>
+          <div class="ro"><div class="head"><span class="plate">Rear</span></div><div class="lcd"><div class="seg md" id="d-rear"></div><span class="unit">cm</span></div></div>
+          <div class="ro"><div class="head"><span class="plate">Left</span></div><div class="lcd"><div class="seg md" id="d-left"></div><span class="unit">cm</span></div></div>
+          <div class="ro"><div class="head"><span class="plate">Right</span></div><div class="lcd"><div class="seg md" id="d-right"></div><span class="unit">cm</span></div></div>
+        </div>
+
+        <div class="meters">
+          <div class="meter" id="m-sarm-temp"></div>
+          <div class="meter" id="m-sarm-hum"></div>
+        </div>
+
+        <div class="deck">
+          <div class="deck-title"><span class="plate">SARM-Robot-01 controls</span></div>
+          <div class="btn-row">
+            <div class="pbw">
+              <button class="pb lg green" id="btn-sarm-on" onclick="sendCommand('MOTOR:ON','sarm')"><span class="cap">▶ ON</span></button>
+              <span class="plate">Motor ON</span>
+            </div>
+            <div class="pbw">
+              <button class="pb lg red" id="btn-sarm-off" onclick="sendCommand('MOTOR:OFF','sarm')"><span class="cap">■ OFF</span></button>
+              <span class="plate">Motor OFF</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STATION 02 : UNO-Q CONVEYOR ===================== -->
+  <section class="panel screws" id="st-unoq">
+    <div class="st-head">
+      <div class="st-id">
+        <span class="st-num">02</span>
+        <div><div class="st-name">UNO-Q-MPU</div><div class="st-sub">Edge gateway · Conveyor drive · Encoder + ACS712</div></div>
+      </div>
+      <div class="st-meta">
+        <span class="rx" id="unoq-rx">RX 0</span>
+        <span class="badge" id="unoq-updated">Waiting…</span>
+        <div class="stack" id="stack-unoq"><i class="r"></i><i class="a"></i><i class="g"></i></div>
+      </div>
+    </div>
+
+    <div class="st-body">
+      <div class="hmi">
+        <div class="screen">
+          <div id="conveyorScene" class="viewport"></div>
+          <div class="hud tl"><b>LINE-01 · CONVEYOR DRIVE</b><br>
+            <span class="k">STATE</span> <span id="hud-conv">--</span><br>
+            <span class="k">DIR</span> <span id="hud-dir">--</span> &nbsp;<span class="k">LOAD</span> <span id="hud-load">--</span></div>
+          <div class="hud bl">⟲ DRAG TO ORBIT</div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="ro-grid">
+          <div class="ro wide">
+            <div class="head"><span class="plate">Motor speed</span><i class="lamp" id="lamp-rpm"></i></div>
+            <div class="lcd"><div class="seg xl" id="unoq-rpm"></div><span class="unit">RPM</span></div>
+          </div>
+          <div class="ro" id="c-unoq-curr">
+            <div class="head"><span class="plate">Motor current</span></div>
+            <div class="lcd"><div class="seg lg" id="unoq-curr"></div><span class="unit">A</span></div>
+          </div>
+          <div class="ro">
+            <div class="head"><span class="plate">Encoder pos</span></div>
+            <div class="lcd"><div class="seg lg" id="unoq-enc" data-tone="cyan"></div><span class="unit">CNT</span></div>
+          </div>
+          <div class="ro" id="c-unoq-temp">
+            <div class="head"><span class="plate">Temperature</span></div>
+            <div class="lcd"><div class="seg md" id="unoq-temp"></div><span class="unit">°C</span></div>
+          </div>
+          <div class="ro">
+            <div class="head"><span class="plate">Humidity</span></div>
+            <div class="lcd"><div class="seg md" id="unoq-hum"></div><span class="unit">%RH</span></div>
+          </div>
+        </div>
+
+        <div class="meters">
+          <div class="meter" id="m-unoq-curr"></div>
+          <div class="meter" id="m-unoq-temp"></div>
+        </div>
+
+        <div class="deck">
+          <div class="deck-title"><span class="plate">UNO-Q motor control</span></div>
+          <div class="unoq-deck">
+            <div class="btn-col">
+              <div class="pbw">
+                <button class="pb green" id="btn-unoq-on" onclick="sendCommand({cmd:'ON'},'unoq')"><span class="cap">▶ ON</span></button>
+                <span class="plate">Motor ON</span>
+              </div>
+              <div class="pbw">
+                <button class="pb red" id="btn-unoq-off" onclick="sendCommand({cmd:'OFF'},'unoq')"><span class="cap">■ OFF</span></button>
+                <span class="plate">Motor OFF</span>
+              </div>
+            </div>
+
+            <div class="fader-box">
+              <span class="plate">PWM</span>
+              <div class="fader" id="fader" role="slider" tabindex="0" aria-label="PWM duty" aria-valuemin="-255" aria-valuemax="255" aria-valuenow="150">
+                <div class="f-scale" id="f-scale"></div>
+                <div class="f-slot"></div>
+                <div class="f-zero"></div>
+                <div class="f-track" id="f-track"><div class="f-fill" id="f-fill"></div></div>
+                <div class="f-knob" id="f-knob"></div>
+              </div>
+              <!-- original slider kept (hidden) so the command code reads it exactly as before -->
+              <input type="range" id="pwm-slider" min="-255" max="255" value="150" hidden>
+            </div>
+
+            <div class="pwm-panel">
+              <div class="ro">
+                <div class="head"><span class="plate">PWM setpoint</span></div>
+                <div class="lcd"><div class="seg lg" id="pwm-label"></div></div>
+                <div class="sub"><span>Direction</span><div class="lcd" style="padding:4px 8px 3px"><div class="seg t14 xs" id="pwm-dir"></div></div></div>
+              </div>
+              <div class="presets">
+                <button class="chip" data-pwm="-255">-255</button><button class="chip" data-pwm="-128">-128</button>
+                <button class="chip" data-pwm="0">0</button><button class="chip" data-pwm="128">+128</button><button class="chip" data-pwm="255">+255</button>
+              </div>
+              <div class="pbw">
+                <button class="pb amber" id="btn-pwm" onclick="sendCommand({pwm:Number(document.getElementById('pwm-slider').value)},'unoq')"><span class="cap">SET<small>PWM</small></span></button>
+                <span class="plate">Send setpoint</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TRENDS + EVENT LOG ===================== -->
+  <section class="bottom">
+    <div class="panel screws">
+      <div class="panel-title"><span class="plate">📈 Strip-chart recorder</span><span class="rx">last 60 samples · 1 Hz</span></div>
+      <div class="trend-grid">
+        <div class="trend"><div class="th"><span>SARM · TEMP °C</span><span id="tv-sarmTemp" style="color:#ffb21e">--</span></div><canvas id="tr-sarmTemp"></canvas></div>
+        <div class="trend"><div class="th"><span>SARM · HUMIDITY %</span><span id="tv-sarmHum" style="color:#35e0ff">--</span></div><canvas id="tr-sarmHum"></canvas></div>
+        <div class="trend"><div class="th"><span>UNO-Q · MOTOR RPM</span><span id="tv-unoqRpm" style="color:#3dff74">--</span></div><canvas id="tr-unoqRpm"></canvas></div>
+        <div class="trend"><div class="th"><span>UNO-Q · CURRENT A</span><span id="tv-unoqCurr" style="color:#ff6bd0">--</span></div><canvas id="tr-unoqCurr"></canvas></div>
+      </div>
+    </div>
+    <div class="panel screws">
+      <div class="panel-title"><span class="plate">▤ Operator event log</span><button class="chip" id="log-clear">CLEAR</button></div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+
+  <footer>SARM-ROBOT-01 · UNO-Q-MPU · AWS API GATEWAY eu-north-1 · POLL 1 Hz</footer>
+</div>
+
+<script>
+/* =====================================================================
+   ORIGINAL CONFIG & BEHAVIOUR (unchanged):
+   - GET  API_URL/data every 1 s
+   - POST API_URL/command with the same payloads as before
+   ===================================================================== */
+const API_URL = "https://w6re0qlfdj.execute-api.eu-north-1.amazonaws.com/prod";
+const MAXPTS = 60;               // samples kept in the strip charts (display only)
+function nowTime(){return new Date().toLocaleTimeString();}
+function fmtDist(v,valid){ if(valid===false||v==null||v===999) return null; return Number(v); }
+
+/* ---- display-only thresholds (used for colours & alarm lamps; no effect on the robot) ---- */
+const PROX_DANGER = 15;   // cm  (same as the old dashboard's red threshold)
+const PROX_WARN   = 40;   // cm
+const SARM_TEMP_HI = 40;  // °C
+const UNOQ_TEMP_HI = 45;  // °C
+const UNOQ_CURR_HI = 2.0; // A
+const LINK_TIMEOUT_MIN = 8000; // ms: never call a link "lost" sooner than this
+const API_FAIL_LIMIT = 3;       // consecutive failed polls before the API lamp goes red
+const CMD_GRACE_MIN = 4000;     // ms the conveyor animation trusts a button press before telemetry must confirm it
+const RPM_AT_FULL_PWM = 150;    // animation-only estimate of RPM at PWM 255 (used until real RPM arrives)
+
+/* =====================================================================
+   LED SEGMENT HELPER
+   Prints text on a DSEG font with faint "ghost" segments behind it,
+   exactly like a real 7/14-segment LED display.
+   ===================================================================== */
+function seg(id, text, slots=0, kind='7', tone){
+  const el = typeof id==='string' ? document.getElementById(id) : id;
+  if(!el) return;
+  if(kind==='14') el.classList.add('t14');
+  let v = String(text);
+  if(kind==='14') v = v.toUpperCase();
+  v = v.replace(/ /g,'!');                                  // '!' = blank digit in DSEG
+  const n = [...v].filter(c=>c!=='.'&&c!==':').length;
+  if(slots && n<slots) v = '!'.repeat(slots-n) + v;
+  const ghost = [...v].map(c=> (c==='.'||c===':') ? c : (kind==='14'?'~':'8')).join('');
+  if(tone) el.dataset.tone = tone;
+  if(el._v===v) return; el._v = v;
+  const g=document.createElement('span'); g.className='g'; g.textContent=ghost;
+  const s=document.createElement('span'); s.className='v'; s.textContent=v;
+  el.replaceChildren(g,s);
+}
+function lamp(id, cls, blink=false){
+  const el=document.getElementById(id); if(!el) return;
+  el.className='lamp'+(cls?' '+cls:'')+(blink?' blink':'');
+}
+function setCardState(id,isDanger){ document.getElementById(id)?.classList.toggle('danger', !!isDanger); }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+/* =====================================================================
+   EVENT LOG
+   ===================================================================== */
+function logEvent(tag,msg,level='info'){
+  const box=document.getElementById('log');
+  const row=document.createElement('div'); row.className='log-row '+level;
+  const t=document.createElement('span'); t.className='lt'; t.textContent=new Date().toLocaleTimeString([], {hour12:false});
+  const g=document.createElement('span'); g.className='ltag'; g.textContent=tag;
+  const m=document.createElement('span'); m.className='lm'; m.textContent=msg;
+  row.append(t,g,m); box.prepend(row);
+  while(box.children.length>120) box.lastChild.remove();
+}
+document.getElementById('log-clear').onclick=()=>{document.getElementById('log').replaceChildren(); logEvent('SYS','Log cleared');};
+
+/* =====================================================================
+   ALARM ANNUNCIATOR (display only)
+   ===================================================================== */
+const ALARMS=[
+  {id:'obs',      label:'Obstacle detected'},
+  {id:'interlock',label:'SARM motor interlock'},
+  {id:'prox',     label:'Proximity < 15 cm'},
+  {id:'sarmTemp', label:'SARM over-temp'},
+  {id:'unoqCurr', label:'UNO-Q over-current'},
+  {id:'unoqTemp', label:'UNO-Q over-temp'},
+  {id:'sarmLink', label:'SARM link lost'},
+  {id:'unoqLink', label:'UNO-Q link lost'},
+  {id:'api',      label:'Cloud API fault'},
+];
+const alarmState={};
+(function buildAnnunciator(){
+  const grid=document.getElementById('ann-grid');
+  ALARMS.forEach(a=>{
+    const d=document.createElement('div'); d.className='al'; d.id='al-'+a.id; d.textContent=a.label; grid.appendChild(d);
+    alarmState[a.id]={active:false,acked:true};
+  });
+})();
+function renderAlarms(){
+  let n=0;
+  ALARMS.forEach(a=>{
+    const s=alarmState[a.id], el=document.getElementById('al-'+a.id);
+    if(s.active) n++;
+    el.classList.toggle('on',s.active);
+    el.classList.toggle('flash',s.active && !s.acked);
+  });
+  const unacked=ALARMS.some(a=>alarmState[a.id].active && !alarmState[a.id].acked);
+  if(n===0) seg('ann-msg','SYSTEM NORMAL',0,'14','green');
+  else seg('ann-msg', n+(n===1?' ALARM ACTIVE':' ALARMS ACTIVE')+(unacked?' - ACK':''),0,'14','red');
+  document.getElementById('btn-ack').classList.toggle('lit',unacked);
+}
+function setAlarm(id,active){
+  const s=alarmState[id]; if(!s) return;
+  active=!!active;
+  if(active===s.active) return;
+  s.active=active;
+  const label=ALARMS.find(a=>a.id===id).label;
+  if(active){ s.acked=false; logEvent('ALARM',label.toUpperCase(),'alarm'); }
+  else { s.acked=true; logEvent('CLEAR',label,'ok'); }
+  renderAlarms();
+}
+document.getElementById('btn-ack').addEventListener('click',()=>{
+  let any=false; Object.values(alarmState).forEach(s=>{ if(s.active && !s.acked){s.acked=true;any=true;} });
+  if(any) logEvent('ACK','Operator acknowledged alarms','warn');
+  renderAlarms();
+});
+document.getElementById('btn-test').addEventListener('click',()=>{
+  document.querySelectorAll('.al').forEach(el=>el.classList.add('test'));
+  logEvent('TEST','Lamp test');
+  setTimeout(()=>document.querySelectorAll('.al').forEach(el=>el.classList.remove('test')),2000);
+});
+
+/* =====================================================================
+   ANALOG PANEL METERS (cream-face, needle with mechanical overshoot)
+   ===================================================================== */
+const meters={};
+function makeMeter(elId,o){
+  const el=document.getElementById(elId);
+  const cx=100,cy=104,R=74,A0=-125,A1=125, uid=elId;
+  const ang=v=>A0+(clamp(v,o.min,o.max)-o.min)/(o.max-o.min)*(A1-A0);
+  const P=(a,r)=>{const t=a*Math.PI/180; return [cx+r*Math.sin(t), cy-r*Math.cos(t)];};
+  const arc=(v0,v1,r,col,w)=>{const a=ang(v0),b=ang(v1),[x0,y0]=P(a,r),[x1,y1]=P(b,r);
+    return `<path d="M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${b-a>180?1:0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}" stroke="${col}" stroke-width="${w}" fill="none"/>`;};
+  let s=`<svg viewBox="0 0 200 150" role="img" aria-label="${o.label}">
+   <defs>
+    <radialGradient id="${uid}-face" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#f4efe1"/><stop offset="1" stop-color="#d6cfbb"/></radialGradient>
+    <linearGradient id="${uid}-bz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5058"/><stop offset="1" stop-color="#14171b"/></linearGradient>
+    <linearGradient id="${uid}-gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
+   </defs>
+   <rect x="3" y="3" width="194" height="144" rx="12" fill="url(#${uid}-bz)"/>
+   <rect x="10" y="10" width="180" height="130" rx="7" fill="url(#${uid}-face)"/>`;
+  if(o.green) s+=arc(o.green[0],o.green[1],R-3,'#2e9e4f',6);
+  if(o.amber) s+=arc(o.amber[0],o.amber[1],R-3,'#e0a100',6);
+  if(o.red)   s+=arc(o.red[0],o.red[1],R-3,'#d7261e',6);
+  s+=arc(o.min,o.max,R,'#222',1.3);
+  const steps=Math.round((o.max-o.min)/o.minor);
+  for(let i=0;i<=steps;i++){
+    const v=o.min+i*o.minor, maj=Math.abs((v-o.min)/o.major-Math.round((v-o.min)/o.major))<1e-6;
+    const a=ang(v),[x0,y0]=P(a,R),[x1,y1]=P(a,R-(maj?11:5));
+    s+=`<line x1="${x0.toFixed(2)}" y1="${y0.toFixed(2)}" x2="${x1.toFixed(2)}" y2="${y1.toFixed(2)}" stroke="#1d1d1d" stroke-width="${maj?1.8:1}"/>`;
+    if(maj){const [tx,ty]=P(a,R-21); s+=`<text x="${tx.toFixed(1)}" y="${(ty+3.5).toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700" font-size="11" fill="#222">${+v.toFixed(2)}</text>`;}
+  }
+  s+=`<text x="100" y="80" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="800" font-size="13" fill="#333" letter-spacing="1.5">${o.unit}</text>
+   <g class="needle" style="transform:rotate(${A0}deg)">
+     <polygon points="98.6,${cy+14} 101.4,${cy+14} 100.5,${cy-R+4} 99.5,${cy-R+4}" fill="#111"/>
+     <polygon points="99.6,${cy-R+16} 100.4,${cy-R+16} 100.2,${cy-R+3} 99.8,${cy-R+3}" fill="#d7261e"/>
+   </g>
+   <circle cx="${cx}" cy="${cy}" r="7" fill="#26292d" stroke="#000" stroke-width="1"/><circle cx="${cx-1.5}" cy="${cy-1.5}" r="2.2" fill="#7b828b"/>
+   <text x="100" y="126" text-anchor="middle" class="mv" font-family="Share Tech Mono,monospace" font-size="12" fill="#333">--</text>
+   <rect x="10" y="10" width="180" height="130" rx="7" fill="url(#${uid}-gl)" pointer-events="none"/>
+  </svg>`;
+  el.innerHTML=s+`<span class="plate" style="margin:6px 0 3px">${o.label}</span>`;
+  const needle=el.querySelector('.needle'), mv=el.querySelector('.mv');
+  meters[elId]={set(v){ if(v==null||isNaN(v)) return; needle.style.transform=`rotate(${ang(v)}deg)`; mv.textContent=v.toFixed(o.dec??1)+' '+o.unit; }};
+  return meters[elId];
+}
+makeMeter('m-sarm-temp',{label:'SARM temp',unit:'°C',min:0,max:50,major:10,minor:2,green:[15,32],amber:[32,SARM_TEMP_HI],red:[SARM_TEMP_HI,50],dec:1});
+makeMeter('m-sarm-hum', {label:'SARM humidity',unit:'%RH',min:0,max:100,major:20,minor:5,green:[30,60],amber:[60,80],red:[80,100],dec:1});
+makeMeter('m-unoq-curr',{label:'Motor current',unit:'A',min:0,max:5,major:1,minor:0.25,green:[0,1.5],amber:[1.5,UNOQ_CURR_HI],red:[UNOQ_CURR_HI,5],dec:3});
+makeMeter('m-unoq-temp',{label:'UNO-Q temp',unit:'°C',min:0,max:60,major:10,minor:2,green:[15,35],amber:[35,UNOQ_TEMP_HI],red:[UNOQ_TEMP_HI,60],dec:1});
+
+/* =====================================================================
+   STRIP CHARTS
+   ===================================================================== */
+const trends={};
+function makeTrend(key,color,dec){
+  const cv=document.getElementById('tr-'+key), lab=document.getElementById('tv-'+key);
+  const t={d:[],push(v){ if(v==null||isNaN(v)) return; this.d.push(v); if(this.d.length>MAXPTS) this.d.shift(); lab.textContent=v.toFixed(dec); this.draw(); },
+    draw(){
+      const dpr=Math.min(window.devicePixelRatio||1,2), W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
+      if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;}
+      const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+      g.strokeStyle='rgba(61,255,116,.08)'; g.lineWidth=1;
+      for(let i=1;i<6;i++){const x=Math.round(W*i/6)+.5; g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke();}
+      for(let i=1;i<4;i++){const y=Math.round(H*i/4)+.5; g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke();}
+      const d=this.d; if(d.length<1) return;
+      let mn=Math.min(...d), mx=Math.max(...d); if(mx-mn<1e-6){mn-=1;mx+=1;} const pad=(mx-mn)*.15; mn-=pad; mx+=pad;
+      const X=i=>W-(d.length-1-i)*(W/(MAXPTS-1)), Y=v=>H-4-(v-mn)/(mx-mn)*(H-8);
+      const grad=g.createLinearGradient(0,0,0,H); grad.addColorStop(0,color+'55'); grad.addColorStop(1,color+'00');
+      g.beginPath(); d.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v))); g.lineTo(X(d.length-1),H); g.lineTo(X(0),H); g.closePath(); g.fillStyle=grad; g.fill();
+      g.beginPath(); d.forEach((v,i)=>i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));
+      g.strokeStyle=color; g.lineWidth=1.8; g.shadowColor=color; g.shadowBlur=8; g.stroke(); g.shadowBlur=0;
+      const lx=X(d.length-1), ly=Y(d[d.length-1]); g.fillStyle='#fff'; g.beginPath(); g.arc(lx-2,ly,2.6,0,7); g.fill();
+      g.font='10px "Share Tech Mono",monospace'; g.fillStyle='rgba(200,210,220,.45)';
+      g.fillText((mx-pad).toFixed(dec),4,11); g.fillText((mn+pad).toFixed(dec),4,H-4);
+    }};
+  trends[key]=t; return t;
+}
+makeTrend('sarmTemp','#ffb21e',1); makeTrend('sarmHum','#35e0ff',1);
+makeTrend('unoqRpm','#3dff74',1);  makeTrend('unoqCurr','#ff6bd0',3);
+window.addEventListener('resize',()=>Object.values(trends).forEach(t=>t.draw()));
+
+/* =====================================================================
+   PPI RADAR SCOPE (2D)
+   ===================================================================== */
+function drawRadar(front,rear,left,right){
+  const svg=document.getElementById('radar');
+  const cx=120, cy=120, maxR=86, maxCm=100;
+  const scale=v=> v==null ? maxR : Math.min(maxR,(Math.min(v,maxCm)/maxCm)*maxR);
+  const col=v=> v==null ? '#2f6b45' : v<PROX_DANGER ? '#ff3b30' : v<PROX_WARN ? '#ffb21e' : '#3dff74';
+  let h='';
+  [1,.66,.33].forEach(k=>h+=`<circle cx="${cx}" cy="${cy}" r="${maxR*k}" fill="none" stroke="rgba(61,255,116,${k===1?.35:.16})"/>`);
+  h+=`<line x1="${cx-maxR}" y1="${cy}" x2="${cx+maxR}" y2="${cy}" stroke="rgba(61,255,116,.12)"/><line x1="${cx}" y1="${cy-maxR}" x2="${cx}" y2="${cy+maxR}" stroke="rgba(61,255,116,.12)"/>`;
+  h+=`<rect x="${cx-9}" y="${cy-11}" width="18" height="22" rx="3" fill="#3dff74" opacity=".85"/>`;
+  const vals={front,rear,left,right};
+  [{k:'front',dx:0,dy:-1,l:'F'},{k:'rear',dx:0,dy:1,l:'R'},{k:'left',dx:-1,dy:0,l:'L'},{k:'right',dx:1,dy:0,l:'R'}].forEach(d=>{
+    const v=vals[d.k], r=scale(v), x=cx+d.dx*r, y=cy+d.dy*r, c=col(v);
+    h+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${c}" stroke-width="3" opacity=".9" style="filter:drop-shadow(0 0 4px ${c})"/>`;
+    if(v!=null && v<maxCm){ // echo arc
+      const pw=d.dx===0, a=26; h+= pw ? `<line x1="${x-a}" y1="${y}" x2="${x+a}" y2="${y}" stroke="${c}" stroke-width="4" style="filter:drop-shadow(0 0 6px ${c})"/>`
+                                     : `<line x1="${x}" y1="${y-a}" x2="${x}" y2="${y+a}" stroke="${c}" stroke-width="4" style="filter:drop-shadow(0 0 6px ${c})"/>`;
+    }
+    h+=`<circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`;
+    const lx=cx+d.dx*(maxR+18), ly=cy+d.dy*(maxR+18)+4;
+    h+=`<text x="${lx}" y="${ly}" fill="#7dffa2" font-size="13" font-family="Share Tech Mono" text-anchor="middle">${v==null?'--':v.toFixed(0)}</text>`;
+  });
+  svg.innerHTML=h;
+}
+
+/* =====================================================================
+   THREE.JS — shared viewport engine (orbit by drag, auto-rotate,
+   pauses when off-screen)
+   ===================================================================== */
+const VIEWS=[];
+function std(color,rough=.55,metal=.1,extra={}){return new THREE.MeshStandardMaterial(Object.assign({color,roughness:rough,metalness:metal},extra));}
+function box(w,h,d,mat,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+function cyl(rt,rb,h,mat,s=24,open=false,t0=0,tl=Math.PI*2){const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,s,1,open,t0,tl),mat);m.castShadow=true;m.receiveShadow=true;return m;}
+function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;}
+
+function createView(container,o){
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x0b1016,o.dist*1.3,o.dist*3);
+  const camera=new THREE.PerspectiveCamera(o.fov||36,1,.1,100);
+
+  scene.add(new THREE.HemisphereLight(0xcfe6ff,0x1d160e,.7));
+  const key=new THREE.DirectionalLight(0xffffff,1.05); key.position.set(4,8,5); key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024); Object.assign(key.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:1,far:30}); key.shadow.bias=-.0006; key.shadow.radius=3;
+  scene.add(key);
+  const rim=new THREE.DirectionalLight(0x46d6ff,.6); rim.position.set(-6,3,-5); scene.add(rim);
+  const warm=new THREE.PointLight(0xffa64d,.55,16); warm.position.set(4,3,-4); scene.add(warm);
+  const fr=o.floorR||8;
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(fr,64),std(0x151a20,.95,0)); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+  const grid=new THREE.GridHelper(fr*2,fr*4,0x2c3c4b,0x1b252f); grid.position.y=.003; grid.material.transparent=true; grid.material.opacity=.6; scene.add(grid);
+
+  const v={container,renderer,scene,camera,visible:true,update:null,dragging:false,
+    orbit:{az:o.az,el:o.el,dist:o.dist,target:new THREE.Vector3(...o.target),lastUser:-1e9,auto:o.auto??.12,aspectRef:o.aspectRef||1.5}};
+  const cvs=renderer.domElement; cvs.style.touchAction='pan-y';
+  let drag=null;
+  cvs.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,az:v.orbit.az,el:v.orbit.el};v.dragging=true;cvs.setPointerCapture(e.pointerId);});
+  cvs.addEventListener('pointermove',e=>{ if(!drag) return;
+    v.orbit.az=drag.az-(e.clientX-drag.x)*.008; v.orbit.el=clamp(drag.el+(e.clientY-drag.y)*.005,.1,1.25); v.orbit.lastUser=performance.now(); });
+  const end=()=>{drag=null;v.dragging=false;v.orbit.lastUser=performance.now();};
+  cvs.addEventListener('pointerup',end); cvs.addEventListener('pointercancel',end);
+
+  const resize=()=>{const w=container.clientWidth,h=container.clientHeight; if(!w||!h) return; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();};
+  new ResizeObserver(resize).observe(container); resize();
+  new IntersectionObserver(es=>{v.visible=es[0].isIntersecting;}).observe(container);
+  VIEWS.push(v); return v;
+}
+let _lt=performance.now();
+function renderLoop(now){
+  requestAnimationFrame(renderLoop);
+  const dt=Math.min(.05,(now-_lt)/1000); _lt=now; const t=now/1000;
+  for(const v of VIEWS){
+    if(!v.visible) continue;
+    const ob=v.orbit;
+    if(!v.dragging && now-ob.lastUser>3500) ob.az+=dt*ob.auto;
+    v.update && v.update(dt,t);
+    const d=ob.dist*Math.pow(Math.max(1,ob.aspectRef/v.camera.aspect),.6);
+    v.camera.position.set(ob.target.x+d*Math.cos(ob.el)*Math.sin(ob.az), ob.target.y+d*Math.sin(ob.el), ob.target.z+d*Math.cos(ob.el)*Math.cos(ob.az));
+    v.camera.lookAt(ob.target);
+    v.renderer.render(v.scene,v.camera);
+  }
+}
+
+/* =====================================================================
+   SARM 3D MODEL — mecanum rover + robotic arm + 4 ultrasonic cones
+   ===================================================================== */
+const SARM3D=(function(){
+  let v, wheels=[], fan, led, ledMat, arm={}, beams={}, dangerRing;
+  const st={drive:false,fan:false,obstacle:false,blocked:false};
+  let wheelSpd=0, fanSpd=0;
+  const LEN_MAX=3.2, TAN=Math.tan(15*Math.PI/180);
+  const COL={ok:0x3dff74,warn:0xffb21e,bad:0xff3b30,off:0x4d5a66};
+  const SENS={front:{o:[0,.68,-1.12],d:[0,0,-1],n:'FRONT'},rear:{o:[0,.68,1.12],d:[0,0,1],n:'REAR'},
+              left:{o:[-.9,.7,0],d:[-1,0,0],n:'LEFT'},right:{o:[.9,.7,-.15],d:[1,0,0],n:'RIGHT'}};
+
+  function ultrasonic(parent,x,y,z,ry,mBlue,mSil,mBlack){
+    const g=new THREE.Group(); g.position.set(x,y,z); g.rotation.y=ry; parent.add(g);
+    box(.46,.2,.03,mBlue,0,0,0,g);
+    [-.12,.12].forEach(px=>{const c=cyl(.075,.075,.09,mSil,24); c.rotation.x=Math.PI/2; c.position.set(px,0,-.05); g.add(c);
+      const i=cyl(.055,.055,.01,mBlack,20); i.rotation.x=Math.PI/2; i.position.set(px,0,-.096); g.add(i);});
+  }
+  function labelSprite(){
+    const c=document.createElement('canvas'); c.width=256; c.height=88;
+    const tex=new THREE.CanvasTexture(c);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true}));
+    sp.scale.set(1.15,.4,1); sp.renderOrder=10; sp.userData={c,tex,key:''};
+    return sp;
+  }
+  function drawLabel(sp,name,val,hex){
+    const key=name+val+hex; if(sp.userData.key===key) return; sp.userData.key=key;
+    const {c,tex}=sp.userData, g=c.getContext('2d'); g.clearRect(0,0,256,88);
+    const col='#'+hex.toString(16).padStart(6,'0');
+    g.fillStyle='rgba(6,10,14,.82)'; g.strokeStyle=col; g.lineWidth=3;
+    g.beginPath(); g.roundRect ? g.roundRect(4,4,248,80,12) : g.rect(4,4,248,80); g.fill(); g.stroke();
+    g.fillStyle='#8a97a5'; g.font='600 24px "Barlow Condensed",sans-serif'; g.fillText(name,18,36);
+    g.fillStyle=col; g.font='700 40px "Share Tech Mono",monospace'; g.shadowColor=col; g.shadowBlur=12;
+    g.fillText(val==null?'-- cm':val.toFixed(0)+' cm',18,74); g.shadowBlur=0;
+    tex.needsUpdate=true;
+  }
+
+  function init(el){
+    v=createView(el,{target:[0,1.05,0],dist:8.2,el:.4,az:.8,fov:36,floorR:7,aspectRef:1.3});
+    const S=v.scene, R=new THREE.Group(); S.add(R);
+    const mBody=std(0x5b616b,.62,.12), mLid=std(0x474c55,.55,.15), mArm=std(0x666c76,.5,.12), mBlack=std(0x18191c,.6,.2),
+          mYel=std(0xf3b10a,.45,.05), mRub=std(0x141414,.9,0), mOr=std(0xff7417,.5,.05), mServo=std(0x7d0f1c,.45,.1),
+          mSil=std(0xcdd3db,.25,.9), mBlue=std(0x1e4fb0,.5,.2), mGreen=std(0x157a3b,.5,.2), mWhite=std(0xe9e6dc,.7,0);
+
+    /* chassis */
+    box(1.7,.62,2.1,mBody,0,.62,0,R);
+    box(1.78,.07,2.18,mLid,0,.965,0,R);
+    box(.75,.05,.02,mBlack,0,.45,-1.056,R);                          // "mouth" slot
+    [-.58,.58].forEach(x=>box(.07,.22,.02,mBlack,x,.66,-1.056,R));    // side slots
+    ledMat=new THREE.MeshStandardMaterial({color:0x111111,emissive:0x3dff74,emissiveIntensity:1.6});
+    led=box(.5,.04,.025,ledMat,0,.87,-1.062,R);
+
+    /* ultrasonic sensors on 4 faces */
+    ultrasonic(R,0,.68,-1.065,0,mBlue,mSil,mBlack);
+    ultrasonic(R,0,.68,1.065,Math.PI,mBlue,mSil,mBlack);
+    ultrasonic(R,-.865,.7,0,Math.PI/2,mBlue,mSil,mBlack);
+    ultrasonic(R,.865,.7,-.15,-Math.PI/2,mBlue,mSil,mBlack);
+
+    /* cooling fan on right side */
+    box(.03,.28,.28,mBlack,.865,.66,.45,R);
+    fan=new THREE.Group(); fan.position.set(.885,.66,.45); R.add(fan);
+    const hub=cyl(.035,.035,.03,mSil,16); hub.rotation.z=Math.PI/2; fan.add(hub);
+    for(let i=0;i<7;i++){const p=new THREE.Group(); p.rotation.x=i/7*Math.PI*2; const b=box(.008,.1,.045,std(0x2a2c30,.5,.2),0,.065,0,p); b.rotation.y=.5; fan.add(p);}
+    const ringF=new THREE.Mesh(new THREE.TorusGeometry(.125,.01,8,32),mBlack); ringF.rotation.y=Math.PI/2; ringF.position.set(.89,.66,.45); R.add(ringF);
+
+    /* mecanum wheels */
+    function wheel(x,z,side){
+      const g=new THREE.Group(); g.position.set(x,.3,z);
+      const h=cyl(.2,.2,.22,mYel,28); h.rotation.z=Math.PI/2; g.add(h);
+      const c=cyl(.09,.09,.24,mBlack,16); c.rotation.z=Math.PI/2; g.add(c);
+      for(let i=0;i<10;i++){const p=new THREE.Group(); p.rotation.x=i/10*Math.PI*2;
+        const r=cyl(.06,.06,.25,mRub,10); r.position.y=.245; r.rotation.set(0,side*Math.PI/4,Math.PI/2); p.add(r); g.add(p);}
+      R.add(g); wheels.push(g);
+    }
+    wheel(-.98,-.72,1); wheel(.98,-.72,-1); wheel(-.98,.72,-1); wheel(.98,.72,1);
+
+    /* top deck: breadboard + boards, LiPo packs, relay */
+    box(.55,.07,.95,mWhite,-.5,1.035,.45,R);
+    box(.14,.03,.42,mBlue,-.68,1.085,.45,R);
+    box(.26,.03,.5,mGreen,-.42,1.085,.45,R);
+    box(.29,.2,.95,mOr,.42,1.1,.45,R); box(.29,.2,.95,mOr,.74,1.1,.45,R);
+    box(.2,.004,.55,mBlack,.42,1.202,.45,R); box(.2,.004,.55,mBlack,.74,1.202,.45,R);
+    box(.26,.1,.2,mBlue,-.05,1.05,.85,R);
+    [0xff6b00,0xffd400,0x00a2ff,0x9b59ff,0x2ecc71,0xff3b6b].forEach((c,i)=>{
+      const s=new THREE.Vector3(-.6+i*.06,1.1,.2), e=new THREE.Vector3(-.15+i*.05,1.45,-.25);
+      const m=new THREE.Vector3((s.x+e.x)/2-.15,1.75+i*.04,(s.z+e.z)/2);
+      const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([s,m,e]),24,.012,6),std(c,.5,0)); R.add(tube);
+    });
+
+    /* robotic arm */
+    const base=cyl(.42,.46,.36,mArm,40); base.position.set(0,1.18,-.25); base.castShadow=true; R.add(base);
+    const yaw=new THREE.Group(); yaw.position.set(0,1.36,-.25); R.add(yaw);
+    const disc=cyl(.38,.38,.06,mLid,40); disc.position.y=.03; yaw.add(disc);
+    box(.5,.18,.36,mArm,0,.14,0,yaw);
+    const joint=(g,r,w)=>{const c=cyl(r,r,w,mArm,32); c.rotation.z=Math.PI/2; g.add(c);};
+    const sh=new THREE.Group(); sh.position.y=.28; yaw.add(sh);
+    joint(sh,.2,.34); box(.12,.3,.2,mServo,.23,0,0,sh); box(.3,.8,.26,mArm,0,.4,0,sh);
+    const elb=new THREE.Group(); elb.position.y=.8; sh.add(elb);
+    joint(elb,.18,.32); box(.12,.28,.18,mServo,-.21,0,0,elb); box(.24,.7,.22,mArm,0,.35,0,elb);
+    const wr=new THREE.Group(); wr.position.y=.7; elb.add(wr);
+    joint(wr,.13,.26); box(.18,.24,.16,mBlack,0,.15,0,wr); box(.1,.18,.14,mServo,.14,.12,0,wr);
+    const grip=new THREE.Group(); grip.position.y=.3; wr.add(grip);
+    box(.38,.06,.16,mBlack,0,0,0,grip);
+    [-.06,.06].forEach(x=>{const gr=cyl(.06,.06,.04,mBlack,12); gr.rotation.x=Math.PI/2; gr.position.set(x,.07,-.09); grip.add(gr);});
+    const f1=box(.05,.36,.1,mBlack,-.11,.22,0,grip), f2=box(.05,.36,.1,mBlack,.11,.22,0,grip);
+    arm={yaw,sh,elb,wr,f1,f2};
+
+    /* ultrasonic beams */
+    const coneGeo=new THREE.ConeGeometry(TAN,1,40,1,true); coneGeo.translate(0,-.5,0);
+    const coreGeo=new THREE.CylinderGeometry(.012,.012,1,6); coreGeo.translate(0,-.5,0);
+    const addMat=(op)=>new THREE.MeshBasicMaterial({color:COL.ok,transparent:true,opacity:op,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+    Object.entries(SENS).forEach(([k,s],i)=>{
+      const g=new THREE.Group(); g.position.set(...s.o);
+      g.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),new THREE.Vector3(...s.d)); S.add(g);
+      const cone=new THREE.Mesh(coneGeo,addMat(.13)); g.add(cone);
+      const core=new THREE.Mesh(coreGeo,addMat(.9)); g.add(core);
+      const disk=new THREE.Mesh(new THREE.CircleGeometry(1,48),addMat(.22)); disk.rotation.x=Math.PI/2; g.add(disk);
+      const ring=new THREE.Mesh(new THREE.RingGeometry(.93,1,48),addMat(.95)); ring.rotation.x=Math.PI/2; g.add(ring);
+      const pulse=new THREE.Mesh(new THREE.RingGeometry(.85,1,40),addMat(.6)); pulse.rotation.x=Math.PI/2; g.add(pulse);
+      const label=labelSprite(); S.add(label);
+      beams[k]={g,cone,core,disk,ring,pulse,label,len:LEN_MAX,target:LEN_MAX,val:null,col:COL.off,phase:i*.25,s};
+      drawLabel(label,s.n,null,COL.off);
+    });
+
+    /* obstacle warning ring on floor */
+    dangerRing=new THREE.Mesh(new THREE.RingGeometry(1.75,1.85,72),new THREE.MeshBasicMaterial({color:COL.bad,transparent:true,opacity:0,side:THREE.DoubleSide}));
+    dangerRing.rotation.x=-Math.PI/2; dangerRing.position.y=.01; S.add(dangerRing);
+
+    v.update=update;
+  }
+
+  function update(dt,t){
+    // beams
+    Object.values(beams).forEach(b=>{
+      b.len+=(b.target-b.len)*Math.min(1,dt*6);
+      const L=b.len, hasEcho=b.val!=null && b.val<100;
+      b.cone.scale.set(L,L,L); b.core.scale.y=L;
+      b.disk.position.y=-L; b.disk.scale.setScalar(TAN*L); b.disk.visible=hasEcho;
+      b.ring.position.y=-L; b.ring.scale.setScalar(TAN*L); b.ring.visible=hasEcho;
+      const p=(t*.9+b.phase)%1; b.pulse.position.y=-p*L; b.pulse.scale.setScalar(Math.max(.001,TAN*p*L));
+      b.pulse.material.opacity=(1-p)*(b.val==null?.15:.7);
+      [b.cone,b.core,b.disk,b.ring,b.pulse].forEach(m=>m.material.color.setHex(b.col));
+      if(b.val!=null && b.val<PROX_DANGER) b.disk.material.opacity=.2+.25*(Math.sin(t*10)*.5+.5); else b.disk.material.opacity=.22;
+      const d=b.s.d; b.label.position.set(b.s.o[0]+d[0]*(L+.45), b.s.o[1]+.35, b.s.o[2]+d[2]*(L+.45));
+    });
+    // wheels + fan
+    wheelSpd+=((st.drive?7:0)-wheelSpd)*Math.min(1,dt*2.5); wheels.forEach(w=>w.rotation.x-=wheelSpd*dt);
+    fanSpd+=((st.fan?28:0)-fanSpd)*Math.min(1,dt*1.5); fan.rotation.x+=fanSpd*dt;
+    // status LED bar
+    const alarm=st.obstacle||st.blocked;
+    ledMat.emissive.setHex(alarm?COL.bad:st.drive?COL.ok:COL.warn);
+    ledMat.emissiveIntensity=alarm?(Math.sin(t*12)>0?2.2:.2):1.6;
+    dangerRing.material.opacity=st.obstacle?.25+.35*(Math.sin(t*6)*.5+.5):0;
+    dangerRing.scale.setScalar(1+.04*Math.sin(t*6));
+    // arm idle motion
+    arm.yaw.rotation.y=Math.sin(t*.35)*.6;
+    arm.sh.rotation.x=.32+Math.sin(t*.5)*.12;
+    arm.elb.rotation.x=-1.45+Math.sin(t*.5+1.2)*.18;
+    arm.wr.rotation.x=-.5+Math.sin(t*.7)*.15;
+    const go=(Math.sin(t*.9)+1)/2; arm.f1.position.x=-(.06+go*.07); arm.f2.position.x=.06+go*.07;
+  }
+
+  function setDistances(f,r,l,rt){
+    if(!v) return;
+    const vals={front:f,rear:r,left:l,right:rt};
+    Object.entries(vals).forEach(([k,val])=>{
+      const b=beams[k]; b.val=val;
+      b.target= val==null ? LEN_MAX : Math.max(.25,Math.min(val,100)/100*LEN_MAX);
+      b.col= val==null ? COL.off : val<PROX_DANGER ? COL.bad : val<PROX_WARN ? COL.warn : COL.ok;
+      drawLabel(b.label,b.s.n,val,b.col);
+    });
+  }
+  function setState(s){Object.assign(st,s);}
+  return {init,setDistances,setState};
+})();
+
+/* =====================================================================
+   CONVEYOR 3D MODEL — belt, rollers, geared motor + encoder disc,
+   cartons riding the belt, andon stack light
+   ===================================================================== */
+const CONV3D=(function(){
+  let v, beltTop, beltBot, rollers=[], cartons=[], disk, lampMats={}, stackLight, motorGlow;
+  let curV=0, rpm=0, current=0, fault=false;
+  const L=6.4, W=1.3, BY=1.05, HALF=L/2-.18;
+
+  function init(el){
+    v=createView(el,{target:[0,.85,0],dist:8.7,el:.48,az:.62,fov:36,floorR:9,auto:.09,aspectRef:1.3});
+    const S=v.scene;
+    const mSteel=std(0x4a5663,.45,.6), mSteelD=std(0x2c333b,.5,.6), mYel=std(0xf3b10a,.5,.1), mGold=std(0xc9a24a,.35,.8),
+          mSil=std(0xc5ccd4,.3,.9), mBlack=std(0x16181b,.6,.2), mBelt=std(0x1b1f24,.9,0);
+
+    const beltTex=canvasTex(256,256,(g,w,h)=>{
+      g.fillStyle='#1d2227'; g.fillRect(0,0,w,h);
+      for(let i=0;i<1800;i++){g.fillStyle=`rgba(255,255,255,${Math.random()*.05})`; g.fillRect(Math.random()*w,Math.random()*h,2,2);}
+      g.lineCap='round'; g.lineJoin='round';
+      g.strokeStyle='#3a434d'; g.lineWidth=16; g.beginPath(); g.moveTo(60,24); g.lineTo(170,h/2); g.lineTo(60,h-24); g.stroke();
+      g.strokeStyle='rgba(243,177,10,.45)'; g.lineWidth=3; g.beginPath(); g.moveTo(60,24); g.lineTo(170,h/2); g.lineTo(60,h-24); g.stroke();
+    });
+    beltTex.wrapS=beltTex.wrapT=THREE.RepeatWrapping; beltTex.repeat.set(L/1.1,1);
+    const beltTexB=beltTex.clone(); beltTexB.needsUpdate=true;
+    beltTop=beltTex; beltBot=beltTexB;
+
+    const top=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xffffff,.85,0,{map:beltTex})); top.rotation.x=-Math.PI/2; top.position.y=BY+.002; top.receiveShadow=true; S.add(top);
+    box(L,.04,W,mBelt,0,BY-.02,0,S);
+    const bot=new THREE.Mesh(new THREE.PlaneGeometry(L,W),std(0xffffff,.85,0,{map:beltTexB})); bot.rotation.x=Math.PI/2; bot.position.y=BY-.27; S.add(bot);
+
+    // rollers + belt wraps
+    const rollTex=canvasTex(128,32,(g,w,h)=>{g.fillStyle='#9aa3ad';g.fillRect(0,0,w,h);g.fillStyle='#5d6670';for(let i=0;i<8;i++)g.fillRect(i*16,0,5,h);});
+    rollTex.wrapS=THREE.RepeatWrapping;
+    [-L/2,L/2].forEach((x,i)=>{
+      const r=cyl(.135,.135,W+.06,32,std(0xffffff,.35,.7,{map:rollTex})); r.rotation.x=Math.PI/2; r.position.set(x,BY-.135,0); S.add(r); rollers.push(r);
+      const wrap=cyl(.145,.145,W,28,mBelt,true,i?0:Math.PI,Math.PI); wrap.material=new THREE.MeshStandardMaterial({color:0x1b1f24,roughness:.9,side:THREE.DoubleSide});
+      wrap.rotation.x=Math.PI/2; wrap.position.set(x,BY-.135,0); S.add(wrap);
+    });
+
+    // frame rails + safety-yellow edge + legs
+    [-1,1].forEach(s=>{
+      box(L+.4,.24,.07,mSteel,0,BY-.05,s*(W/2+.07),S);
+      box(L+.4,.03,.076,mYel,0,BY+.085,s*(W/2+.07),S);
+    });
+    [-L/2+.3,0,L/2-.3].forEach(x=>{
+      [-1,1].forEach(s=>{ box(.09,BY-.17,.09,mSteelD,x,(BY-.17)/2,s*(W/2+.07),S); box(.2,.02,.2,mSteelD,x,.01,s*(W/2+.07),S); });
+      box(.07,.07,W+.14,mSteelD,x,.3,0,S);
+    });
+
+    // geared DC motor + encoder disc at +X end
+    const mz=W/2+.28, my=BY-.135;
+    const shaft=cyl(.03,.03,.36,mSil,12); shaft.rotation.x=Math.PI/2; shaft.position.set(L/2,my,W/2+.14); S.add(shaft);
+    box(.34,.34,.3,mGold,L/2,my,mz,S);
+    const motor=cyl(.16,.16,.5,mSil,32); motor.rotation.x=Math.PI/2; motor.position.set(L/2,my,mz+.4); S.add(motor);
+    const capM=cyl(.165,.165,.05,mBlack,32); capM.rotation.x=Math.PI/2; capM.position.set(L/2,my,mz+.66); S.add(capM);
+    const encTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#0f1114';g.fillRect(0,0,w,h);g.translate(64,64);
+      g.fillStyle='#d8dde3';for(let i=0;i<24;i++){g.rotate(Math.PI/12);g.fillRect(-3,30,6,26);} g.beginPath();g.arc(0,0,10,0,7);g.fill();});
+    disk=cyl(.21,.21,.012,std(0xffffff,.4,.5,{map:encTex}),40); disk.rotation.x=Math.PI/2; disk.position.set(L/2,my,mz+.7); S.add(disk);
+    box(.08,.12,.06,mBlack,L/2,my+.2,mz+.7,S); // encoder read-head
+    motorGlow=new THREE.PointLight(0xff6a2a,0,2.2); motorGlow.position.set(L/2+.3,my,mz+.4); S.add(motorGlow);
+
+    // cartons on the belt
+    const cardTex=canvasTex(128,128,(g,w,h)=>{g.fillStyle='#b98a55';g.fillRect(0,0,w,h);
+      for(let i=0;i<400;i++){g.fillStyle=`rgba(80,50,20,${Math.random()*.12})`;g.fillRect(Math.random()*w,Math.random()*h,2,2);}
+      g.fillStyle='#d8c29a';g.fillRect(0,h/2-10,w,20);
+      g.strokeStyle='rgba(60,35,10,.6)';g.lineWidth=3;g.strokeRect(20,20,34,26);g.beginPath();g.moveTo(26,40);g.lineTo(37,26);g.lineTo(48,40);g.stroke();});
+    const cardMat=std(0xffffff,.85,0,{map:cardTex});
+    [[.55,.42,.6],[.45,.34,.5],[.6,.5,.62],[.48,.38,.48]].forEach(([w,h,d],i)=>{
+      const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),cardMat); m.castShadow=true; m.receiveShadow=true;
+      m.position.set(-HALF+.3+i*(2*HALF/4),BY+h/2,(Math.random()-.5)*.25); m.rotation.y=(Math.random()-.5)*.3; m.userData.h=h;
+      S.add(m); cartons.push(m);
+    });
+
+    // andon stack light
+    const sx=-L/2-.05, sz=-(W/2+.3);
+    box(.16,.06,.3,mSteelD,sx,BY+.06,-(W/2+.17),S);
+    const pole=cyl(.03,.03,.9,mSteelD,12); pole.position.set(sx,BY+.5,sz); S.add(pole);
+    [['g',0x3dff74,.98],['a',0xffb21e,1.16],['r',0xff3b30,1.34]].forEach(([k,c,y])=>{
+      const mat=new THREE.MeshStandardMaterial({color:0x222222,emissive:c,emissiveIntensity:.05,roughness:.3,transparent:true,opacity:.95});
+      const m=cyl(.09,.09,.16,mat,24); m.position.set(sx,BY+y,sz); S.add(m); lampMats[k]=mat;
+    });
+    const capS=cyl(.095,.095,.04,mBlack,24); capS.position.set(sx,BY+1.44,sz); S.add(capS);
+    stackLight=new THREE.PointLight(0x3dff74,0,4); stackLight.position.set(sx,BY+1.2,sz); S.add(stackLight);
+
+    // floor safety markings
+    const yl=new THREE.MeshBasicMaterial({color:0xd9a10a});
+    const fw=L+1.4, fd=W+2.1;
+    [[fw,.08,0,fd/2],[fw,.08,0,-fd/2],[.08,fd,fw/2,0],[.08,fd,-fw/2,0]].forEach(([w,d,x,z])=>{
+      const p=new THREE.Mesh(new THREE.PlaneGeometry(w,d),yl); p.rotation.x=-Math.PI/2; p.position.set(x,.006,z); S.add(p);});
+
+    v.update=update;
+  }
+
+  function update(dt,t){
+    const target=clamp(rpm*.015,-3,3);
+    curV+=(target-curV)*Math.min(1,dt*7);
+    const tile=L/beltTop.repeat.x;
+    beltTop.offset.x-=curV*dt/tile; beltBot.offset.x+=curV*dt/tile;
+    rollers.forEach(r=>r.rotation.y-=curV/.135*dt);
+    cartons.forEach(b=>{
+      b.position.x+=curV*dt;
+      if(b.position.x>HALF) b.position.x-=2*HALF; if(b.position.x<-HALF) b.position.x+=2*HALF;
+      const s=Math.max(.001,Math.min(1,(HALF-Math.abs(b.position.x))/.45));
+      b.scale.setScalar(s); b.position.y=BY+b.userData.h/2*s;
+    });
+    disk.rotation.y+=rpm*2*Math.PI/60*dt*.35;
+    motorGlow.intensity=clamp(current/UNOQ_CURR_HI,0,1.5)*1.2;
+    const running=Math.abs(rpm)>.5;
+    const k= fault ? 'r' : running ? 'g' : 'a';
+    Object.entries(lampMats).forEach(([n,m])=>{ const on=n===k; m.emissiveIntensity= on ? (n==='r'?(Math.sin(t*10)>0?2.4:.3):2.2) : .05; });
+    stackLight.color.setHex(k==='r'?0xff3b30:k==='g'?0x3dff74:0xffb21e);
+    stackLight.intensity= k==='r' ? (Math.sin(t*10)>0?1.4:.2) : 1.0;
+  }
+  function set(s){ if(s.rpm!=null) rpm=s.rpm; if(s.current!=null) current=s.current; if(s.fault!=null) fault=s.fault; }
+  return {init,set};
+})();
+
+/* boot 3D */
+if(window.THREE){
+  try{ SARM3D.init(document.getElementById('robotScene')); CONV3D.init(document.getElementById('conveyorScene')); requestAnimationFrame(renderLoop); }
+  catch(e){ console.error('3D init failed',e); }
+}else{
+  ['robotScene','conveyorScene'].forEach(id=>{const d=document.createElement('div');d.className='offline';d.textContent='3D VIEW OFFLINE';document.getElementById(id).appendChild(d);});
+}
+
+/* =====================================================================
+   VERTICAL PWM FADER (drives the hidden #pwm-slider)
+   ===================================================================== */
+const PWM_MIN=-255, PWM_MAX=255;
+const fader=document.getElementById('fader'), fknob=document.getElementById('f-knob'), ffill=document.getElementById('f-fill'),
+      ftrack=document.getElementById('f-track'), pwmInput=document.getElementById('pwm-slider');
+(function buildScale(){
+  const sc=document.getElementById('f-scale');
+  for(let i=0;i<=20;i++){
+    const val=PWM_MAX-i*(PWM_MAX-PWM_MIN)/20, p=i*5, maj=i%5===0;
+    const t=document.createElement('div'); t.className='tk'+(maj?' maj':''); t.style.top=p+'%'; t.style.width=maj?'12px':'6px'; sc.appendChild(t);
+    if(maj){const l=document.createElement('div'); l.className='tl'; l.style.top=p+'%'; l.textContent=(val>0?'+':val<0?'-':'')+Math.round(Math.abs(val)); sc.appendChild(l);}
+  }
+})();
+function setPWMUI(v){
+  v=Math.round(clamp(v,PWM_MIN,PWM_MAX));
+  pwmInput.value=v;
+  const p=(PWM_MAX-v)/(PWM_MAX-PWM_MIN)*100;
+  fknob.style.top=p+'%';
+  if(v>=0){ffill.style.top=p+'%';ffill.style.bottom='50%';} else {ffill.style.top='50%';ffill.style.bottom=(100-p)+'%';}
+  ffill.classList.toggle('neg',v<0);
+  fader.setAttribute('aria-valuenow',v);
+  seg('pwm-label',String(v),4,'7',v<0?'cyan':'amber');
+  seg('pwm-dir',v>0?'FWD':v<0?'REV':'STOP',4,'14',v>0?'amber':v<0?'cyan':'dim');
+}
+function faderFromY(y){
+  const r=ftrack.getBoundingClientRect(); let v=PWM_MAX-clamp((y-r.top)/r.height,0,1)*(PWM_MAX-PWM_MIN);
+  if(Math.abs(v)<7) v=0;                // centre detent
+  setPWMUI(v);
+}
+fader.addEventListener('pointerdown',e=>{fader.setPointerCapture(e.pointerId); fader.focus(); faderFromY(e.clientY);});
+fader.addEventListener('pointermove',e=>{ if(fader.hasPointerCapture(e.pointerId)) faderFromY(e.clientY); });
+fader.addEventListener('dblclick',()=>setPWMUI(0));
+fader.addEventListener('keydown',e=>{
+  const cur=Number(pwmInput.value), step=e.shiftKey?10:1; let nv=null;
+  if(e.key==='ArrowUp'||e.key==='ArrowRight') nv=cur+step;
+  else if(e.key==='ArrowDown'||e.key==='ArrowLeft') nv=cur-step;
+  else if(e.key==='PageUp') nv=cur+25; else if(e.key==='PageDown') nv=cur-25;
+  else if(e.key==='Home') nv=PWM_MAX; else if(e.key==='End') nv=PWM_MIN; else if(e.key==='0') nv=0;
+  if(nv!=null){e.preventDefault(); setPWMUI(nv);}
+});
+document.querySelectorAll('.chip[data-pwm]').forEach(b=>b.addEventListener('click',()=>setPWMUI(Number(b.dataset.pwm))));
+setPWMUI(Number(pwmInput.value));
+
+/* pushbutton TX flash feedback */
+document.querySelectorAll('.pb').forEach(b=>b.addEventListener('click',()=>{b.classList.remove('tx'); void b.offsetWidth; b.classList.add('tx');}));
+
+/* =====================================================================
+   DATA HANDLING (same fields & logic as before, new visuals)
+   ===================================================================== */
+const live={
+  boot:Date.now(),
+  sarm:{last:0,count:0,iv:[],prev:{},fan:false,allowed:null,requested:null,obstacle:false,temp:null,dist:[null,null,null,null]},
+  unoq:{last:0,count:0,iv:[],prev:{},lastRunRpm:null,rpm:null,curr:null,temp:null},
+  api:null
+};
+function stack(id,state,blink){ // state: 'r' | 'a' | 'g'
+  document.querySelectorAll('#'+id+' i').forEach(i=>{ const on=i.classList.contains(state); i.classList.toggle('on',on); i.classList.toggle('blink',on&&!!blink); });
+}
+function hud(id,text,cls){const el=document.getElementById(id); el.textContent=text; el.className=cls||'';}
+function logChange(dev,key,val,msgOn,msgOff,lvlOn='warn',lvlOff='ok'){
+  const p=live[dev].prev; if(p[key]===undefined){p[key]=val;return;}
+  if(p[key]!==val){ p[key]=val; logEvent(dev==='sarm'?'SARM':'UNO-Q', val?msgOn:msgOff, val?lvlOn:lvlOff); }
+}
+
+function updateSarmRobot(data){
+  const S=live.sarm; markRx(S);
+  if(data.temperature_c!=null){const t=Number(data.temperature_c); S.temp=t;
+    seg('sarm-temp',t.toFixed(1),4,'7',t>=SARM_TEMP_HI?'red':'amber'); meters['m-sarm-temp'].set(t); trends.sarmTemp.push(t);
+    setCardState('c-temp',t>=SARM_TEMP_HI); setAlarm('sarmTemp',t>=SARM_TEMP_HI);}
+  if(data.humidity_pct!=null){const h=Number(data.humidity_pct);
+    seg('sarm-hum',h.toFixed(1),4,'7','amber'); meters['m-sarm-hum'].set(h); trends.sarmHum.push(h);}
+  if(data.fan_on!=null){S.fan=!!data.fan_on;
+    seg('sarm-fan',S.fan?'ON':'OFF',3,'14',S.fan?'green':'dim'); lamp('lamp-fan',S.fan?'g':'');
+    hud('hud-fan',S.fan?'ON':'OFF',S.fan?'ok':''); logChange('sarm','fan',S.fan,'Cooling fan ON','Cooling fan OFF','info','info');}
+  if(data.fan_mode!=null) seg('sarm-fan-mode',String(data.fan_mode),6,'14','cyan');
+  if(data.motor_allowed!=null){S.allowed=!!data.motor_allowed;
+    seg('sarm-motor',S.allowed?'ON':'BLOCKED',7,'14',S.allowed?'green':'red'); lamp('lamp-motor',S.allowed?'g':'r',!S.allowed);
+    setCardState('c-motor',!S.allowed); setAlarm('interlock',!S.allowed);
+    logChange('sarm','allowed',S.allowed,'Motor enabled','Motor BLOCKED by interlock','ok','warn');}
+  if(data.motor_requested!=null){S.requested=!!data.motor_requested;
+    seg('sarm-motor-req',S.requested?'YES':'NO',3,'14',S.requested?'green':'dim');}
+  if(data.obstacle_detected!=null){S.obstacle=!!data.obstacle_detected;
+    seg('sarm-obstacle',S.obstacle?'DETECTED':'CLEAR',8,'14',S.obstacle?'red':'green'); lamp('lamp-obs',S.obstacle?'r':'g',S.obstacle);
+    setCardState('c-obs',S.obstacle); setAlarm('obs',S.obstacle);}
+
+  const front=fmtDist(data.front_cm,data.front_valid), rear=fmtDist(data.rear_cm,data.rear_valid);
+  const left=fmtDist(data.left_cm,data.left_valid), right=fmtDist(data.right_cm,data.right_valid);
+  drawRadar(front,rear,left,right);
+  SARM3D.setDistances(front,rear,left,right);
+  const dTone=v=> v==null?'dim': v<PROX_DANGER?'red': v<PROX_WARN?'amber':'green';
+  [['d-front',front],['d-rear',rear],['d-left',left],['d-right',right]].forEach(([id,v])=>seg(id,v==null?'---':v.toFixed(0),3,'7',dTone(v)));
+  const valid=[front,rear,left,right].filter(v=>v!=null), near=valid.length?Math.min(...valid):null;
+  hud('hud-near',near==null?'--':near.toFixed(0)+' cm',near==null?'':near<PROX_DANGER?'bad':near<PROX_WARN?'warn':'ok');
+  setAlarm('prox',near!=null && near<PROX_DANGER);
+
+  const driving=S.allowed===true && S.requested===true;
+  hud('hud-drive',S.allowed===false?'BLOCKED':driving?'RUNNING':'IDLE',S.allowed===false?'bad':driving?'ok':'warn');
+  SARM3D.setState({drive:driving,fan:S.fan,obstacle:S.obstacle,blocked:S.allowed===false});
+  document.getElementById('btn-sarm-on').classList.toggle('lit',driving);
+  document.getElementById('btn-sarm-off').classList.toggle('lit',S.requested===false);
+  const fault=S.obstacle||S.allowed===false||(S.temp!=null&&S.temp>=SARM_TEMP_HI);
+  stack('stack-sarm',fault?'r':driving?'g':'a',fault);
+
+  document.getElementById("sarm-updated").textContent="● Last packet: "+nowTime();
+}
+
+function updateUnoQ(data){
+  const U=live.unoq; markRx(U);
+  if(data.motor_rpm!=null){const r=Number(data.motor_rpm); U.rpm=r;
+    seg('unoq-rpm',r.toFixed(2),6,'7',Math.abs(r)>.5?'green':'amber'); lamp('lamp-rpm',Math.abs(r)>.5?'g':''); trends.unoqRpm.push(r);}
+  if(data.motor_current_a!=null){const c=Number(data.motor_current_a); U.curr=c;
+    seg('unoq-curr',c.toFixed(3),4,'7',c>=UNOQ_CURR_HI?'red':'amber'); meters['m-unoq-curr'].set(c); trends.unoqCurr.push(c);
+    setCardState('c-unoq-curr',c>=UNOQ_CURR_HI); setAlarm('unoqCurr',c>=UNOQ_CURR_HI);}
+  if(data.encoder_pos!=null) seg('unoq-enc',String(data.encoder_pos),7,'7','cyan');
+  if(data.temperature_c!=null){const t=Number(data.temperature_c); U.temp=t;
+    seg('unoq-temp',t.toFixed(1),4,'7',t>=UNOQ_TEMP_HI?'red':'amber'); meters['m-unoq-temp'].set(t);
+    setCardState('c-unoq-temp',t>=UNOQ_TEMP_HI); setAlarm('unoqTemp',t>=UNOQ_TEMP_HI);}
+  if(data.humidity_pct!=null) seg('unoq-hum',Number(data.humidity_pct).toFixed(1),4,'7','amber');
+
+  const running=U.rpm!=null && Math.abs(U.rpm)>.5;
+  if(running) U.lastRunRpm=U.rpm;
+  logChange('unoq','run',running,'Conveyor motor started (telemetry)','Conveyor motor stopped (telemetry)','ok','info');
+  renderConveyor();
+
+  document.getElementById("unoq-updated").textContent="● Last packet: "+nowTime();
+}
+
+function handlePacket(packet){
+  if(!packet || !packet.device_id) return;
+  if(packet.device_id==="SARM-Robot-01") updateSarmRobot(packet);
+  else if(packet.device_id==="UNO-Q-MPU") updateUnoQ(packet);
+}
+let apiFails=0;
+function setApi(ok){
+  apiFails = ok ? 0 : apiFails+1;
+  const fault = apiFails>=API_FAIL_LIMIT, healthy = !fault;
+  lamp('lamp-api', ok?'g':fault?'r':'a', fault); setAlarm('api',fault);
+  if(live.api!==healthy){ logEvent('API',healthy?'Cloud API connected':'Cloud API unreachable ('+apiFails+' failed polls)',healthy?'ok':'err'); live.api=healthy; }
+}
+
+/* ---- network: identical requests to the original dashboard ---- */
+async function refreshData(){
+  try{ const res=await fetch(API_URL+"/data"); const data=await res.json();
+    if(Array.isArray(data)) data.forEach(handlePacket); else handlePacket(data);
+    setApi(true);
+  }catch(e){ console.error("Failed to fetch data",e); setApi(false); }
+}
+async function sendCommand(cmd,target="sarm"){
+  logEvent('TX',(target==='unoq'?'UNO-Q ⇐ ':'SARM ⇐ ')+(typeof cmd==='string'?cmd:JSON.stringify(cmd)),'tx');
+  if(target==='unoq') onUnoqCommand(cmd);          // UI only: animate immediately
+  try{
+    const payload = target==="unoq" ? {command:JSON.stringify(cmd)} : {command:cmd};
+    const res = await fetch(API_URL+"/command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    logEvent('ACK','HTTP '+res.status+(res.ok?' · command accepted':' · rejected'),res.ok?'ok':'warn');
+    if(!res.ok && target==='unoq') cancelUnoqCommand('rejected by API');
+    setTimeout(refreshData,800);
+  }catch(e){ console.error(`Command failed for ${target}:`,e); logEvent('ERR','Command failed for '+target,'err'); if(target==='unoq') cancelUnoqCommand('not delivered'); }
+}
+
+/* =====================================================================
+   PACKET TIMING (learns how often each device really reports)
+   ===================================================================== */
+function markRx(L){
+  const now=Date.now();
+  if(L.last){ L.iv.push(now-L.last); if(L.iv.length>15) L.iv.shift(); }
+  L.last=now; L.count++;
+}
+function expectedInterval(L){
+  if(L.iv.length<3) return 1000;
+  const s=[...L.iv].sort((a,b)=>a-b); return s[s.length>>1];   // median gap between packets
+}
+
+/* =====================================================================
+   CONVEYOR: instant response to ON / OFF / SET PWM
+   The button press drives the animation straight away; real telemetry
+   takes over as soon as it confirms the new state (or after a grace time).
+   ===================================================================== */
+const cmdUnoq={state:null,rpm:0,t:0};
+function shownConveyorRunning(){ return Math.abs(conveyorTargetRpm())>.5; }
+function onUnoqCommand(cmd){
+  if(!cmd || typeof cmd!=='object') return;
+  const U=live.unoq, now=Date.now();
+  if(cmd.cmd==='ON'){
+    const r=(U.lastRunRpm!=null && Math.abs(U.lastRunRpm)>.5) ? U.lastRunRpm
+          : (Number(document.getElementById('pwm-slider').value)/255*RPM_AT_FULL_PWM) || RPM_AT_FULL_PWM*.6;
+    Object.assign(cmdUnoq,{state:'on',rpm:r,t:now});
+  }else if(cmd.cmd==='OFF'){
+    Object.assign(cmdUnoq,{state:'off',rpm:0,t:now});
+  }else if(cmd.pwm!=null){
+    const r=cmd.pwm/255*RPM_AT_FULL_PWM;
+    U.lastRunRpm = Math.abs(r)>.5 ? r : U.lastRunRpm;
+    if(shownConveyorRunning()) Object.assign(cmdUnoq, Math.abs(r)>.5 ? {state:'on',rpm:r,t:now} : {state:'off',rpm:0,t:now});
+  }
+  renderConveyor();
+}
+function cancelUnoqCommand(why){
+  if(!cmdUnoq.state) return;
+  cmdUnoq.state=null; logEvent('UNO-Q','Command '+why+' – showing live telemetry','warn'); renderConveyor();
+}
+function conveyorTargetRpm(){
+  const U=live.unoq;
+  return cmdUnoq.state ? cmdUnoq.rpm : (U.rpm??0);
+}
+function renderConveyor(){
+  const U=live.unoq, now=Date.now();
+  const telRun=U.rpm!=null && Math.abs(U.rpm)>.5;
+  let pending=false;
+  if(cmdUnoq.state){
+    const agrees = cmdUnoq.state==='on' ? (telRun && Math.sign(U.rpm)===Math.sign(cmdUnoq.rpm)) : !telRun;
+    const grace = Math.max(CMD_GRACE_MIN, expectedInterval(U)*3);
+    if(agrees && U.last>cmdUnoq.t){
+      logEvent('UNO-Q','Telemetry confirmed motor '+cmdUnoq.state.toUpperCase()+' in '+((U.last-cmdUnoq.t)/1000).toFixed(1)+' s','ok');
+      cmdUnoq.state=null;
+    }else if(now-cmdUnoq.t>grace){
+      logEvent('UNO-Q','No telemetry confirmation for motor '+cmdUnoq.state.toUpperCase()+' after '+(grace/1000).toFixed(0)+' s','warn');
+      cmdUnoq.state=null;
+    }else pending=true;
+  }
+  const rpm=conveyorTargetRpm(), running=Math.abs(rpm)>.5;
+  const fault=(U.curr!=null&&U.curr>=UNOQ_CURR_HI)||(U.temp!=null&&U.temp>=UNOQ_TEMP_HI);
+  CONV3D.set({rpm,current:U.curr??0,fault});
+  hud('hud-conv', fault?'FAULT' : pending?(running?'STARTING… (cmd sent)':'STOPPING… (cmd sent)') : running?'RUNNING':'STOPPED',
+      fault?'bad':pending?'warn':running?'ok':'warn');
+  hud('hud-dir',!running?'—':rpm>0?'▶ FWD':'◀ REV',running?'ok':'');
+  hud('hud-load',U.curr==null?'--':(U.curr/UNOQ_CURR_HI*100).toFixed(0)+'%',U.curr!=null&&U.curr>=UNOQ_CURR_HI?'bad':U.curr!=null&&U.curr>=UNOQ_CURR_HI*.75?'warn':'ok');
+  document.getElementById('btn-unoq-on').classList.toggle('lit',running);
+  document.getElementById('btn-unoq-off').classList.toggle('lit',!running);
+  stack('stack-unoq',fault?'r':running?'g':'a',fault);
+}
+
+/* ---- link watchdog + clock (display only) ---- */
+function tick(){
+  const now=new Date();
+  seg('clock',[now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':'),0,'7','cyan');
+  [['sarm','lamp-sarm','sarmLink','sarm-updated','sarm-rx'],['unoq','lamp-unoq','unoqLink','unoq-updated','unoq-rx']].forEach(([k,lp,al,badge,rx])=>{
+    const L=live[k], exp=expectedInterval(L), age=Date.now()-(L.last||live.boot);
+    const lateAt=Math.max(2500,exp*1.8), lostAt=Math.max(LINK_TIMEOUT_MIN,exp*4);
+    const state = age>lostAt ? 'lost' : (L.last===0 || age>lateAt) ? 'late' : 'ok';
+    lamp(lp, state==='ok'?'g':state==='late'?'a':'r', state==='lost');   // only a real loss blinks
+    setAlarm(al,state==='lost');
+    document.getElementById(badge).classList.toggle('stale',state==='lost');
+    document.getElementById(rx).textContent='RX '+L.count+' · EVERY '+(L.iv.length>=3?(exp/1000).toFixed(1)+'s':'--')+' · AGE '+(age/1000).toFixed(0)+'s';
+  });
+  if(cmdUnoq.state) renderConveyor();     // expire the button-press grace window
+}
+
+/* ---- initial state ---- */
+['sarm-temp','sarm-hum','unoq-temp','unoq-hum'].forEach(id=>seg(id,'--.-',4,'7','dim'));
+seg('unoq-rpm','---.--',6,'7','dim'); seg('unoq-curr','-.---',4,'7','dim'); seg('unoq-enc','-',7,'7','dim');
+['d-front','d-rear','d-left','d-right'].forEach(id=>seg(id,'---',3,'7','dim'));
+seg('sarm-fan','--',3,'14','dim'); seg('sarm-motor','--',7,'14','dim'); seg('sarm-obstacle','--',8,'14','dim');
+seg('sarm-fan-mode','--',6,'14','dim'); seg('sarm-motor-req','--',3,'14','dim');
+stack('stack-sarm','a'); stack('stack-unoq','a');
+renderAlarms(); tick(); setInterval(tick,1000);
+logEvent('SYS','Operator console online · polling '+API_URL.replace('https://','').split('.')[0]+'…');
+
+drawRadar(null,null,null,null);
+refreshData();
+setInterval(refreshData,1000);
+</script>
+</body>
+</html>
