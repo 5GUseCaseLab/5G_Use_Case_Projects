@@ -24,19 +24,85 @@ app = Flask(__name__)
 latest = {"jpg": None, "status": {"state": "STARTING", "count": 0, "density": 0.0}}
 lock = threading.Lock()
 
-PAGE = """<html><head><meta name=viewport content='width=device-width,initial-scale=1'>
-<style>body{font-family:sans-serif;background:#111;color:#fff;text-align:center}
-#s{font-size:3em;padding:.3em;border-radius:12px;margin:10px}img{max-width:100%}</style></head><body>
-<h2>CrowdGate</h2><div id=s>...</div><div id=d></div><img src=/video>
-<script>setInterval(async()=>{let r=await (await fetch('/status')).json();
-let c={GREEN:'#1a9850',YELLOW:'#e0b000',RED:'#d73027',CAMERA_FAILURE:'#7b1fa2'}[r.state]||'#555';
-s.style.background=c;s.textContent=r.state==='CAMERA_FAILURE'?'CAMERA FAILURE - treat as RED':r.state;
-d.textContent=r.state==='CAMERA_FAILURE'?'no fresh camera frame for '+r.stale_s+' s':r.count+' people | '+r.density.toFixed(2)+' per m2 | area '+r.area_m2+' m2'},1000)</script></body></html>"""
+PAGE = """<!doctype html><html><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>
+<title>CrowdGate</title>
+<style>
+:root{--bg:#0b1220;--card:#131c2e;--line:#22304a;--txt:#e8eef9;--mut:#8ea0bd;--c:#3b4a63}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+h1{margin:0;font-size:1.5rem;letter-spacing:.5px}h1 span{color:var(--mut);font-weight:400;font-size:.95rem;margin-left:10px}
+.live{font-size:.85rem;color:var(--mut);display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;background:#e0b000}
+.dot.on{background:#2ecc71;box-shadow:0 0 8px #2ecc71}.dot.off{background:#e74c3c}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.vid{position:relative;background:#000;min-height:200px}
+.vid img{display:block;width:100%;height:auto}
+.tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);padding:4px 10px;border-radius:999px;font-size:.78rem}
+.side{display:flex;flex-direction:column;gap:16px}
+#st{padding:26px 16px;text-align:center;background:var(--c);transition:background .3s}
+#sn{font-size:2.6rem;font-weight:800;letter-spacing:1px;line-height:1.1}
+#sa{margin-top:8px;font-size:1rem;opacity:.92}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
+.tile{background:#0f1728;border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile b{display:block;font-size:1.8rem}.tile small{color:var(--mut)}
+.wide{grid-column:span 2}
+.bar{height:10px;border-radius:999px;background:#0f1728;border:1px solid var(--line);margin-top:8px;overflow:hidden}
+#bf{height:100%;width:0;background:var(--c);transition:width .4s,background .3s}
+footer{margin-top:16px;color:var(--mut);font-size:.8rem;text-align:center}
+</style></head><body><div class=wrap>
+<header><h1>CrowdGate<span>Edge crowd-density monitor</span></h1>
+<div class=live><span class=dot id=dt></span><span id=lt>connecting</span></div></header>
+<div class=grid>
+<div class='card vid'><span class=tag>LIVE &middot; 5G camera &rarr; MEC</span><img id=v alt=''></div>
+<div class=side>
+<div class=card><div id=st><div id=sn>...</div><div id=sa>waiting for data</div></div>
+<div class=tiles>
+<div class=tile><small>People in zone</small><b id=pc>-</b></div>
+<div class=tile><small>Density (per m&sup2;)</small><b id=pd>-</b></div>
+<div class='tile wide'><small>Zone area</small><b id=pa>-</b>
+<div class=bar><div id=bf></div></div></div>
+</div></div></div></div>
+<footer>GREEN = open &nbsp;|&nbsp; YELLOW = caution &nbsp;|&nbsp; RED = gate closed &nbsp;|&nbsp; CAMERA FAILURE = fail-safe (treated as RED)</footer>
+</div>
+<script>
+var COL={GREEN:'#1a9850',YELLOW:'#d9a400',RED:'#d73027',CAMERA_FAILURE:'#7b1fa2'};
+var MSG={GREEN:'Safe - gate open',YELLOW:'Getting crowded - caution',RED:'Overcrowded - gate closed',CAMERA_FAILURE:'No camera frame - fail-safe, treat as RED',STARTING:'Starting up'};
+function $(i){return document.getElementById(i)}
+setInterval(async function(){
+ try{var r=await (await fetch('/status',{cache:'no-store'})).json();
+  var c=COL[r.state]||'#3b4a63';document.documentElement.style.setProperty('--c',c);
+  $('sn').textContent=r.state==='CAMERA_FAILURE'?'CAMERA FAILURE':r.state;
+  $('sa').textContent=MSG[r.state]||'';
+  var fail=r.state==='CAMERA_FAILURE';
+  $('pc').textContent=fail?'-':r.count;
+  $('pd').textContent=fail?'-':Number(r.density).toFixed(2);
+  $('pa').textContent=(r.area_m2!=null?r.area_m2:'-')+' m²';
+  $('bf').style.width=Math.min(100,(r.density||0)/4*100)+'%';
+  $('dt').className='dot on';$('lt').textContent='live '+new Date().toLocaleTimeString();
+ }catch(e){$('dt').className='dot off';$('lt').textContent='dashboard offline'}
+},1000);
+function tick(){var n=new Image();n.onload=function(){$('v').src=n.src;setTimeout(tick,80)};
+ n.onerror=function(){setTimeout(tick,500)};n.src='/frame.jpg?'+Date.now()}tick();
+</script></body></html>
+"""
 
 
 @app.route("/")
 def index():
     return PAGE
+
+
+@app.route("/frame.jpg")
+def frame_jpg():
+    with lock:
+        jpg = latest["jpg"]
+    if not jpg:
+        return Response(status=503)
+    return Response(jpg, mimetype="image/jpeg", headers={"Cache-Control": "no-store"})
 
 
 @app.route("/status")
@@ -90,12 +156,15 @@ class FrameGrabber:
 @app.route("/people_det")          # same route name your lab's main.py used
 def video():
     def gen():
+        last = None
         while True:
             with lock:
                 jpg = latest["jpg"]
-            if jpg:
-                yield b"--f\r\nContent-Type: image/jpeg\r\n\r\n" + jpg + b"\r\n"
-            time.sleep(0.04)
+            if jpg and jpg is not last:
+                last = jpg
+                yield (b"--f\r\nContent-Type: image/jpeg\r\nContent-Length: " + str(len(jpg)).encode()
+                       + b"\r\n\r\n" + jpg + b"\r\n")
+            time.sleep(0.02)
     return Response(gen(), mimetype="multipart/x-mixed-replace; boundary=f")
 
 
