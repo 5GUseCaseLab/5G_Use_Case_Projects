@@ -1,0 +1,6 @@
+onnxruntime
+fastapi
+uvicorn
+python-multipart
+requests
+scikit-learn==1.9.1

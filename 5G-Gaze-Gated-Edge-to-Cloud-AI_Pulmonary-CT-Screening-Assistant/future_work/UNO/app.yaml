@@ -1,0 +1,6 @@
+name: 5G
+description: ""
+ports:
+- 8000
+bricks: []
+icon: 😀
