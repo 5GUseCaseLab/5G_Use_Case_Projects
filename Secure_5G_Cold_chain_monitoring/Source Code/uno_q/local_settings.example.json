@@ -1,0 +1,5 @@
+{
+  "MQTT_HOST": "192.168.137.1",
+  "COLDCHAIN_KEY": "coldchain_secret_key_2026",
+  "COLDCHAIN_STATE_DIR": "/home/arduino/coldchain_state"
+}
