@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>URLLC Sensor Link</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background: #09111e; color: #e8f0fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: radial-gradient(circle at 85% -10%, #163453, transparent 36rem), #09111e; }
+    main { max-width: 1280px; margin: auto; padding: 32px 24px 60px; }
+    header, .heading, .section-head { display: flex; justify-content: space-between; align-items: center; gap: 18px; }
+    h1 { font-size: 1.9rem; letter-spacing: -.04em; margin: 0 0 4px; }
+    h2 { font-size: 1rem; margin: 0; letter-spacing: .01em; }
+    p { margin: 0; color: #95a8bf; }
+    .eyebrow { color: #5fe2ca; text-transform: uppercase; font-size: .69rem; font-weight: 800; letter-spacing: .2em; margin-bottom: 8px; }
+    .status { display: inline-flex; align-items: center; gap: 9px; padding: 10px 15px; border: 1px solid #3b4d61; border-radius: 100px; background: #111f30; font-size: .84rem; white-space: nowrap; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #9aacbf; box-shadow: 0 0 0 4px #9aacbf22; }
+    .status.online .dot { background: #4ce4ad; box-shadow: 0 0 0 4px #4ce4ad22; }
+    .status.offline .dot { background: #ffbb6a; box-shadow: 0 0 0 4px #ffbb6a22; }
+    .meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: .78rem; margin-top: 14px; color: #8297ac; }
+    .section-head { margin: 34px 0 14px; }
+    .section-head span, .hint { color: #8095aa; font-size: .78rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card { background: #111e2d; border: 1px solid #25384c; border-radius: 16px; padding: 20px; min-width: 0; box-shadow: 0 12px 30px #00000014; }
+    .label { color: #94abc0; font-size: .81rem; font-weight: 600; }
+    .value { font-size: 2.2rem; font-weight: 700; letter-spacing: -.055em; line-height: 1.15; margin: 10px 0 2px; font-variant-numeric: tabular-nums; }
+    .unit { font-size: 1rem; letter-spacing: 0; color: #93a8bc; font-weight: 500; }
+    .sub { color: #718aa0; font-size: .75rem; min-height: 1.2em; }
+    .sensor-bar { height: 6px; background: #283b4c; border-radius: 8px; overflow: hidden; margin: 19px 0 12px; }
+    .sensor-bar i { display: block; height: 100%; border-radius: 8px; width: 0; transition: width .3s; }
+    .water i { background: #5aaaf5; } .soil i { background: #bba8f5; } .rain i { background: #51d7c8; }
+    .sensor-foot { display: flex; justify-content: space-between; color: #8ba1b6; font-size: .78rem; }
+    .alert { border-color: #355166; background: linear-gradient(110deg, #152b3d, #112033); display: flex; gap: 18px; align-items: center; justify-content: space-between; }
+    .alert strong { font-size: 1rem; display: block; margin-top: 5px; }
+    .priority { border: 1px solid #3d6673; color: #65dec9; border-radius: 8px; padding: 6px 10px; font-size: .77rem; font-weight: 700; }
+    .priority.high { border-color: #8f6245; color: #ffc282; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .chart-card { min-height: 210px; }
+    canvas { display: block; width: 100%; height: 160px; margin-top: 15px; }
+    .legend { display: flex; gap: 15px; margin-top: 10px; font-size: .72rem; color: #90a6ba; }
+    .legend i { display: inline-block; height: 7px; width: 7px; border-radius: 50%; margin-right: 5px; }
+    table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+    th { color: #8298ae; font-weight: 600; text-align: left; padding: 13px 8px; border-bottom: 1px solid #2b3c4e; }
+    td { padding: 12px 8px; border-bottom: 1px solid #203145; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: 0; }
+    .table-wrap { overflow-x: auto; }
+    .footnote { margin-top: 18px; font-size: .74rem; line-height: 1.55; }
+    @media (max-width: 780px) { .grid, .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .chart-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 520px) { main { padding: 24px 15px 45px; } header { align-items: flex-start; } h1 { font-size: 1.5rem; } .grid, .metrics { grid-template-columns: 1fr; } .card { padding: 17px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><div class="eyebrow">Live telemetry</div><h1>URLLC Sensor Link</h1><p>UNO Q · Water, soil and rainfall</p></div>
+      <div id="status" class="status"><span class="dot"></span><span id="status-text">Waiting for data</span></div>
+    </header>
+    <div class="meta"><span id="session">Session —</span><span id="last-seen">Last seen —</span><span id="window">Rolling window · 5 min</span></div>
+
+    <div class="section-head"><h2>Sensor readings</h2><span>Latest valid packet</span></div>
+    <div class="grid">
+      <div class="card water"><div class="label">Water level</div><div class="value"><span id="water">—</span><span class="unit"> %</span></div><div class="sensor-bar"><i id="water-bar"></i></div><div class="sensor-foot"><span>Raw ADC</span><strong id="water-raw">—</strong></div></div>
+      <div class="card soil"><div class="label">Soil moisture</div><div class="value"><span id="soil">—</span><span class="unit"> %</span></div><div class="sensor-bar"><i id="soil-bar"></i></div><div class="sensor-foot"><span>Raw ADC</span><strong id="soil-raw">—</strong></div></div>
+      <div class="card rain"><div class="label">Rain sensor</div><div class="value"><span id="rain">—</span><span class="unit"> %</span></div><div class="sensor-bar"><i id="rain-bar"></i></div><div class="sensor-foot"><span>Raw ADC</span><strong id="rain-raw">—</strong></div></div>
+    </div>
+    <div class="section-head"><h2>Current event</h2><span>From sketch classification</span></div>
+    <div class="card alert"><div><div class="label">Event</div><strong id="event">No readings yet</strong></div><span id="priority" class="priority">Priority —</span></div>
+
+    <div class="section-head"><h2>Link performance</h2><span id="deadline">100 ms deadline</span></div>
+    <div class="grid metrics">
+      <div class="card"><div class="label">End-to-end latency <span title="Sensor sample to server, estimated from a UDP echo">ⓘ</span></div><div class="value"><span id="latency">—</span><span class="unit"> ms</span></div><div class="sub">Latest available estimate</div></div>
+      <div class="card"><div class="label">Reliability</div><div class="value"><span id="reliability">—</span><span class="unit"> %</span></div><div class="sub">Valid unique / expected</div></div>
+      <div class="card"><div class="label">Packet loss</div><div class="value"><span id="loss">—</span><span class="unit"> %</span></div><div class="sub">Missing sequence IDs / expected</div></div>
+      <div class="card"><div class="label">Jitter</div><div class="value"><span id="jitter">—</span><span class="unit"> ms</span></div><div class="sub">Mean change in consecutive estimates</div></div>
+      <div class="card"><div class="label">P99 latency</div><div class="value"><span id="p99">—</span><span class="unit"> ms</span></div><div class="sub">Nearest-rank percentile</div></div>
+      <div class="card"><div class="label">Deadline success</div><div class="value"><span id="deadline-success">—</span><span class="unit"> %</span></div><div class="sub">On-time estimates / expected</div></div>
+    </div>
+    <p class="footnote" id="counts">Waiting for packets.</p>
+
+    <div class="section-head"><h2>Trends</h2><span>Recent packets in rolling window</span></div>
+    <div class="chart-grid">
+      <div class="card chart-card"><div class="label">Estimated latency · ms</div><canvas id="latency-chart"></canvas></div>
+      <div class="card chart-card"><div class="label">Sensor levels · %</div><canvas id="sensor-chart"></canvas><div class="legend"><span><i style="background:#5aaaf5"></i>Water</span><span><i style="background:#bba8f5"></i>Soil</span><span><i style="background:#51d7c8"></i>Rain</span></div></div>
+    </div>
+
+    <div class="section-head"><h2>Recent packets</h2><span>Newest first</span></div>
+    <div class="card table-wrap"><table><thead><tr><th>Sequence</th><th>Time</th><th>Status</th><th>Latency estimate</th></tr></thead><tbody id="packets"><tr><td colspan="4">No packets received</td></tr></tbody></table></div>
+    <p class="footnote">One-way network delay is approximated as half the echo round trip; asymmetric routes can change the true value. Missing packets and packets without echo timing fail the deadline calculation. The board clock calibration adds measurement uncertainty.</p>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const fmt = (value, digits = 1) => value == null ? '—' : Number(value).toFixed(digits);
+    function lineChart(canvas, series, maxY) {
+      const dpr = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width * dpr)); canvas.height = Math.floor(160 * dpr);
+      const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+      const w = rect.width, h = 160, left = 8, right = w - 8, top = 12, bottom = h - 16;
+      ctx.strokeStyle = '#2a3e51'; ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) { const y = top + (bottom - top) * i / 3; ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke(); }
+      for (const s of series) {
+        ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.beginPath(); let drawing = false;
+        s.values.forEach((v, i) => {
+          if (v == null) { drawing = false; return; }
+          const x = left + (right - left) * i / Math.max(1, s.values.length - 1);
+          const y = bottom - Math.min(1, Math.max(0, v / maxY)) * (bottom - top);
+          if (drawing) ctx.lineTo(x, y); else ctx.moveTo(x, y); drawing = true;
+        }); ctx.stroke();
+      }
+    }
+    function render(state) {
+      const m = state.metrics, latest = state.latest;
+      const status = $('status'); status.className = 'status ' + (state.connected ? 'online' : 'offline');
+      $('status-text').textContent = state.connected ? 'Board connected' : (state.session ? 'Board offline' : 'Waiting for data');
+      $('session').textContent = state.session ? 'Session ' + state.session.slice(0, 8) : 'Session —';
+      $('last-seen').textContent = state.last_seen_age_ms == null ? 'Last seen —' : 'Last seen ' + fmt(state.last_seen_age_ms / 1000, 1) + ' s ago';
+      for (const sensor of ['water', 'soil', 'rain']) {
+        const value = latest?.[sensor]; $(sensor).textContent = fmt(value);
+        $(sensor + '-raw').textContent = latest?.[sensor + '_raw'] ?? '—';
+        $(sensor + '-bar').style.width = (value ?? 0) + '%';
+      }
+      $('event').textContent = latest?.event?.replaceAll('_', ' ') ?? 'No readings yet';
+      $('priority').textContent = latest ? 'Priority ' + latest.priority : 'Priority —';
+      $('priority').className = 'priority' + (latest && latest.priority <= 1 ? ' high' : '');
+      $('deadline').textContent = fmt(state.deadline_ms, 0) + ' ms deadline';
+      $('latency').textContent = fmt(m.latency_ms); $('reliability').textContent = fmt(m.reliability_pct);
+      $('loss').textContent = fmt(m.packet_loss_pct); $('jitter').textContent = fmt(m.jitter_ms);
+      $('p99').textContent = fmt(m.p99_latency_ms); $('deadline-success').textContent = fmt(m.deadline_success_pct);
+      $('counts').textContent = `${m.expected} expected · ${m.valid} valid · ${m.missing} missing · ${m.invalid} invalid · ${m.unknown_latency} awaiting echo timing · ${m.duplicates} duplicates · ${m.reordered} reordered`;
+      const rows = state.history.slice(-12).reverse(), tbody = $('packets'); tbody.replaceChildren();
+      if (!rows.length) { const tr = tbody.insertRow(); const td = tr.insertCell(); td.colSpan = 4; td.textContent = 'No packets received'; }
+      for (const row of rows) {
+        const tr = tbody.insertRow();
+        [row.seq, new Date(row.at_ms).toLocaleTimeString(), row.status, row.latency_ms == null ? '—' : fmt(row.latency_ms) + ' ms'].forEach(v => { const td = tr.insertCell(); td.textContent = v; });
+      }
+      const history = state.history;
+      const maxLatency = Math.max(state.deadline_ms, ...history.map(r => r.latency_ms ?? 0), 1) * 1.15;
+      lineChart($('latency-chart'), [{color: '#5fe2ca', values: history.map(r => r.latency_ms)}], maxLatency);
+      lineChart($('sensor-chart'), [
+        {color: '#5aaaf5', values: history.map(r => r.water)},
+        {color: '#bba8f5', values: history.map(r => r.soil)},
+        {color: '#51d7c8', values: history.map(r => r.rain)}
+      ], 100);
+    }
+    async function refresh() {
+      try { const response = await fetch('/api/state', {cache: 'no-store'}); if (!response.ok) throw Error(); render(await response.json()); }
+      catch { $('status').className = 'status offline'; $('status-text').textContent = 'Server unavailable'; }
+    }
+    refresh(); setInterval(refresh, 250);
+  </script>
+</body>
+</html>
