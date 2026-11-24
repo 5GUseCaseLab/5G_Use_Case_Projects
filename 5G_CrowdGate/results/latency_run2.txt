@@ -1,0 +1,2 @@
+MEC      round-trip ms: mean=97.0 median=95.7 p95=117.8 | server compute mean=93.7 | network share ~3.3 ms | count=1
+CLOUD    round-trip ms: mean=1426.0 median=1411.5 p95=1680.1 | server compute mean=744.6 | network share ~681.3 ms | count=1

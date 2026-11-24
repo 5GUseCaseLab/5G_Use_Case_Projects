@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+runs/
+*.mp4.tmp
+frame*.jpg
+test.jpg
+calibration_preview.jpg

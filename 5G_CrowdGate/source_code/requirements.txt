@@ -1,0 +1,8 @@
+ultralytics
+opencv-contrib-python>=4.7
+numpy
+flask
+requests
+pillow
+openvino
+paho-mqtt>=2.0   # optional, only for --mqtt-host
