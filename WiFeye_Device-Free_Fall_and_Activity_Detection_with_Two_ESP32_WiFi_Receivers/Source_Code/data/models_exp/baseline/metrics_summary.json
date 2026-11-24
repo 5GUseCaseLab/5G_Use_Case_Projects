@@ -1,0 +1,1780 @@
+{
+  "dataset": {
+    "windows": 19333,
+    "action_windows": 9804,
+    "trials": 509,
+    "n_features": 22,
+    "trial_counts": {
+      "hand": 100,
+      "sit": 100,
+      "stand": 100,
+      "walk": 100,
+      "fall": 79,
+      "empty_room": 30
+    }
+  },
+  "protocol": {
+    "fall_tau": 0.5,
+    "trial_region_s": [
+      2.0,
+      7.5
+    ],
+    "action_intervals_s": {
+      "fall": [
+        2.0,
+        6.0
+      ],
+      "sit": [
+        2.0,
+        6.0
+      ],
+      "stand": [
+        2.0,
+        6.0
+      ],
+      "walk": [
+        2.0,
+        7.5
+      ],
+      "hand": [
+        2.0,
+        7.0
+      ],
+      "empty_room": [
+        0.0,
+        1000000000.0
+      ]
+    },
+    "loso_folds": [
+      "subject_1",
+      "subject_2",
+      "subject_3",
+      "subject_4",
+      "subject_5"
+    ],
+    "augmentation": {
+      "aug_dir": null,
+      "kinds": [],
+      "rule": "training folds only; source trial must be in training set; style variants excluded from their style subject's LOSO fold"
+    },
+    "targets": {
+      "fall_sensitivity": ">=0.95",
+      "fall_false_alarm_rate_adl": "<=0.03"
+    }
+  },
+  "selected_model": "hist_gradient_boosting",
+  "feature_importance": {
+    "stat_std_rx1": 0.0723440783157712,
+    "tier_energy_mean": 0.07021619661800474,
+    "tier_motion_entropy": 0.06515734295766575,
+    "spatial_cross_corr": 0.06023157650503983,
+    "stat_ptp_rx1": 0.058499767509101436,
+    "stat_skew_rx1": 0.05848426010291578,
+    "tier_dE_dt": 0.058095502172212994,
+    "stat_kurt_rx1": 0.057008230842579825,
+    "stat_std_rx2": 0.056387196551001925,
+    "stat_skew_rx2": 0.05333711589447564,
+    "tier_energy_var": 0.05330219183182647,
+    "stat_ptp_rx2": 0.050507226098655794,
+    "spec_entropy": 0.05048874696018632,
+    "stat_kurt_rx2": 0.04926563122568746,
+    "stat_mean_rx1": 0.04527672521771302,
+    "spec_band_5_10Hz": 0.043463407940565524,
+    "stat_mean_rx2": 0.04303733840210502,
+    "spec_band_2_5Hz": 0.04260569505427737,
+    "spec_dominant_freq": 0.012254414666013624,
+    "flag_fall_fastpath": 3.735513420031878e-05,
+    "flag_dormant": 0.0,
+    "spec_band_05_2Hz": 0.0
+  },
+  "results": {
+    "random_forest": {
+      "loso": {
+        "window_level": {
+          "accuracy": 0.2967156262749898,
+          "macro_f1": 0.2700835678246017,
+          "fall_sensitivity": 0.09572784810126582,
+          "fall_false_alarm_rate_adl": 0.10094594594594594,
+          "fall_specificity_adl": 0.899054054054054,
+          "fall_false_alarm_rate_empty": 0.07456140350877193,
+          "n_fall": 1264,
+          "n_adl": 7400,
+          "confusion_matrix": [
+            [
+              121,
+              302,
+              270,
+              191,
+              132,
+              248
+            ],
+            [
+              173,
+              1026,
+              294,
+              232,
+              401,
+              74
+            ],
+            [
+              231,
+              266,
+              311,
+              219,
+              163,
+              410
+            ],
+            [
+              195,
+              321,
+              282,
+              143,
+              245,
+              414
+            ],
+            [
+              148,
+              452,
+              252,
+              227,
+              654,
+              267
+            ],
+            [
+              85,
+              32,
+              199,
+              118,
+              52,
+              654
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.12696747114375656,
+              "recall": 0.09572784810126582,
+              "f1-score": 0.10915651781686965,
+              "support": 1264.0
+            },
+            "walk": {
+              "precision": 0.42767819924968736,
+              "recall": 0.46636363636363637,
+              "f1-score": 0.4461839530332681,
+              "support": 2200.0
+            },
+            "sit": {
+              "precision": 0.19340796019900497,
+              "recall": 0.194375,
+              "f1-score": 0.19389027431421446,
+              "support": 1600.0
+            },
+            "stand": {
+              "precision": 0.12654867256637167,
+              "recall": 0.089375,
+              "f1-score": 0.10476190476190476,
+              "support": 1600.0
+            },
+            "hand": {
+              "precision": 0.3970856102003643,
+              "recall": 0.327,
+              "f1-score": 0.35865094598299974,
+              "support": 2000.0
+            },
+            "empty_room": {
+              "precision": 0.3164005805515239,
+              "recall": 0.5736842105263158,
+              "f1-score": 0.4078578110383536,
+              "support": 1140.0
+            }
+          }
+        },
+        "trial_level": {
+          "accuracy": 0.33595284872298625,
+          "macro_f1": 0.30299860845689913,
+          "fall_sensitivity": 0.0379746835443038,
+          "fall_false_alarm_rate_adl": 0.0925,
+          "fall_specificity_adl": 0.9075,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              3,
+              18,
+              25,
+              15,
+              4,
+              14
+            ],
+            [
+              5,
+              68,
+              13,
+              6,
+              8,
+              0
+            ],
+            [
+              13,
+              11,
+              24,
+              16,
+              7,
+              29
+            ],
+            [
+              14,
+              16,
+              16,
+              4,
+              17,
+              33
+            ],
+            [
+              5,
+              16,
+              18,
+              6,
+              44,
+              11
+            ],
+            [
+              0,
+              0,
+              0,
+              2,
+              0,
+              28
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.075,
+              "recall": 0.0379746835443038,
+              "f1-score": 0.05042016806722689,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.5271317829457365,
+              "recall": 0.68,
+              "f1-score": 0.5938864628820961,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.25,
+              "recall": 0.24,
+              "f1-score": 0.24489795918367346,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.08163265306122448,
+              "recall": 0.04,
+              "f1-score": 0.053691275167785234,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.55,
+              "recall": 0.44,
+              "f1-score": 0.4888888888888889,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.24347826086956523,
+              "recall": 0.9333333333333333,
+              "f1-score": 0.38620689655172413,
+              "support": 30.0
+            }
+          }
+        },
+        "trial_level_pool_only": {
+          "accuracy": 0.3379174852652259,
+          "macro_f1": 0.302870257282341,
+          "fall_sensitivity": 0.0379746835443038,
+          "fall_false_alarm_rate_adl": 0.08,
+          "fall_specificity_adl": 0.92,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              3,
+              18,
+              25,
+              15,
+              4,
+              14
+            ],
+            [
+              3,
+              69,
+              14,
+              6,
+              8,
+              0
+            ],
+            [
+              11,
+              12,
+              24,
+              16,
+              7,
+              30
+            ],
+            [
+              13,
+              16,
+              16,
+              4,
+              17,
+              34
+            ],
+            [
+              5,
+              16,
+              18,
+              6,
+              44,
+              11
+            ],
+            [
+              0,
+              0,
+              0,
+              2,
+              0,
+              28
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.08571428571428572,
+              "recall": 0.0379746835443038,
+              "f1-score": 0.05263157894736842,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.5267175572519084,
+              "recall": 0.69,
+              "f1-score": 0.5974025974025974,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.24742268041237114,
+              "recall": 0.24,
+              "f1-score": 0.2436548223350254,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.08163265306122448,
+              "recall": 0.04,
+              "f1-score": 0.053691275167785234,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.55,
+              "recall": 0.44,
+              "f1-score": 0.4888888888888889,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.23931623931623933,
+              "recall": 0.9333333333333333,
+              "f1-score": 0.38095238095238093,
+              "support": 30.0
+            }
+          }
+        },
+        "fall_tau_sweep": [
+          {
+            "fall_tau": 0.3,
+            "fall_sensitivity": 0.4430379746835443,
+            "fall_false_alarm_rate_adl": 0.475,
+            "fall_specificity_adl": 0.525,
+            "fall_false_alarm_rate_empty": 0.3,
+            "trial_accuracy": 0.2770137524557957
+          },
+          {
+            "fall_tau": 0.4,
+            "fall_sensitivity": 0.11392405063291139,
+            "fall_false_alarm_rate_adl": 0.16,
+            "fall_specificity_adl": 0.84,
+            "fall_false_alarm_rate_empty": 0.03333333333333333,
+            "trial_accuracy": 0.3280943025540275
+          },
+          {
+            "fall_tau": 0.5,
+            "fall_sensitivity": 0.0379746835443038,
+            "fall_false_alarm_rate_adl": 0.0925,
+            "fall_specificity_adl": 0.9075,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.33595284872298625
+          },
+          {
+            "fall_tau": 0.6,
+            "fall_sensitivity": 0.0379746835443038,
+            "fall_false_alarm_rate_adl": 0.08,
+            "fall_specificity_adl": 0.92,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.3379174852652259
+          },
+          {
+            "fall_tau": 0.7,
+            "fall_sensitivity": 0.0379746835443038,
+            "fall_false_alarm_rate_adl": 0.08,
+            "fall_specificity_adl": 0.92,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.3379174852652259
+          },
+          {
+            "fall_tau": 0.8,
+            "fall_sensitivity": 0.0379746835443038,
+            "fall_false_alarm_rate_adl": 0.08,
+            "fall_specificity_adl": 0.92,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.3379174852652259
+          },
+          {
+            "fall_tau": 1.01,
+            "fall_sensitivity": 0.0379746835443038,
+            "fall_false_alarm_rate_adl": 0.08,
+            "fall_specificity_adl": 0.92,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.3379174852652259
+          }
+        ],
+        "per_fold": [
+          {
+            "fold": "subject_1",
+            "n_test_trials": 105,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.47619047619047616,
+            "trial_macro_f1": 0.4199390949390949,
+            "fall_sensitivity": 0.10526315789473684,
+            "fall_false_alarm_rate_adl": 0.0125,
+            "fall_specificity_adl": 0.9875,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 19,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_2",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.2358490566037736,
+            "trial_macro_f1": 0.2485353889609209,
+            "fall_sensitivity": 0.05,
+            "fall_false_alarm_rate_adl": 0.0875,
+            "fall_specificity_adl": 0.9125,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 20,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_3",
+            "n_test_trials": 86,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.47674418604651164,
+            "trial_macro_f1": 0.4205336733491558,
+            "fall_sensitivity": null,
+            "fall_false_alarm_rate_adl": 0.2875,
+            "fall_specificity_adl": 0.7125,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 0,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_4",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.16037735849056603,
+            "trial_macro_f1": 0.1313008130081301,
+            "fall_sensitivity": 0.0,
+            "fall_false_alarm_rate_adl": 0.05,
+            "fall_specificity_adl": 0.95,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 20,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_5",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.3584905660377358,
+            "trial_macro_f1": 0.3054111880594865,
+            "fall_sensitivity": 0.0,
+            "fall_false_alarm_rate_adl": 0.025,
+            "fall_specificity_adl": 0.975,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 20,
+            "n_adl": 80
+          }
+        ]
+      },
+      "stratified_group_5fold": {
+        "window_level": {
+          "accuracy": 0.3598531211750306,
+          "macro_f1": 0.3369246393165332,
+          "fall_sensitivity": 0.17484177215189872,
+          "fall_false_alarm_rate_adl": 0.09635135135135135,
+          "fall_specificity_adl": 0.9036486486486487,
+          "fall_false_alarm_rate_empty": 0.07982456140350877,
+          "n_fall": 1264,
+          "n_adl": 7400,
+          "confusion_matrix": [
+            [
+              221,
+              310,
+              236,
+              145,
+              143,
+              209
+            ],
+            [
+              182,
+              1147,
+              263,
+              196,
+              324,
+              88
+            ],
+            [
+              196,
+              243,
+              440,
+              217,
+              141,
+              363
+            ],
+            [
+              162,
+              290,
+              334,
+              259,
+              216,
+              339
+            ],
+            [
+              173,
+              350,
+              254,
+              187,
+              796,
+              240
+            ],
+            [
+              91,
+              39,
+              185,
+              114,
+              46,
+              665
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.21560975609756097,
+              "recall": 0.17484177215189872,
+              "f1-score": 0.19309742245522063,
+              "support": 1264.0
+            },
+            "walk": {
+              "precision": 0.48213535098781,
+              "recall": 0.5213636363636364,
+              "f1-score": 0.5009827473247433,
+              "support": 2200.0
+            },
+            "sit": {
+              "precision": 0.2570093457943925,
+              "recall": 0.275,
+              "f1-score": 0.26570048309178745,
+              "support": 1600.0
+            },
+            "stand": {
+              "precision": 0.23166368515205724,
+              "recall": 0.161875,
+              "f1-score": 0.1905813097866078,
+              "support": 1600.0
+            },
+            "hand": {
+              "precision": 0.4777911164465786,
+              "recall": 0.398,
+              "f1-score": 0.4342607746863066,
+              "support": 2000.0
+            },
+            "empty_room": {
+              "precision": 0.3492647058823529,
+              "recall": 0.5833333333333334,
+              "f1-score": 0.4369250985545335,
+              "support": 1140.0
+            }
+          }
+        },
+        "trial_level": {
+          "accuracy": 0.48722986247544203,
+          "macro_f1": 0.45976330477226984,
+          "fall_sensitivity": 0.24050632911392406,
+          "fall_false_alarm_rate_adl": 0.05,
+          "fall_specificity_adl": 0.95,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              19,
+              19,
+              21,
+              3,
+              6,
+              11
+            ],
+            [
+              7,
+              80,
+              6,
+              3,
+              3,
+              1
+            ],
+            [
+              4,
+              12,
+              50,
+              11,
+              3,
+              20
+            ],
+            [
+              3,
+              9,
+              32,
+              16,
+              19,
+              21
+            ],
+            [
+              6,
+              10,
+              14,
+              7,
+              53,
+              10
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              30
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.48717948717948717,
+              "recall": 0.24050632911392406,
+              "f1-score": 0.3220338983050847,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.6153846153846154,
+              "recall": 0.8,
+              "f1-score": 0.6956521739130435,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.4065040650406504,
+              "recall": 0.5,
+              "f1-score": 0.4484304932735426,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.4,
+              "recall": 0.16,
+              "f1-score": 0.22857142857142856,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.6309523809523809,
+              "recall": 0.53,
+              "f1-score": 0.5760869565217391,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.3225806451612903,
+              "recall": 1.0,
+              "f1-score": 0.4878048780487805,
+              "support": 30.0
+            }
+          }
+        },
+        "trial_level_pool_only": {
+          "accuracy": 0.4911591355599214,
+          "macro_f1": 0.4610166186597136,
+          "fall_sensitivity": 0.22784810126582278,
+          "fall_false_alarm_rate_adl": 0.0375,
+          "fall_specificity_adl": 0.9625,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              18,
+              19,
+              21,
+              3,
+              6,
+              12
+            ],
+            [
+              3,
+              83,
+              6,
+              3,
+              4,
+              1
+            ],
+            [
+              3,
+              12,
+              50,
+              12,
+              3,
+              20
+            ],
+            [
+              3,
+              9,
+              32,
+              16,
+              19,
+              21
+            ],
+            [
+              6,
+              10,
+              14,
+              7,
+              53,
+              10
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              30
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.5454545454545454,
+              "recall": 0.22784810126582278,
+              "f1-score": 0.32142857142857145,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.6240601503759399,
+              "recall": 0.83,
+              "f1-score": 0.7124463519313304,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.4065040650406504,
+              "recall": 0.5,
+              "f1-score": 0.4484304932735426,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.3902439024390244,
+              "recall": 0.16,
+              "f1-score": 0.22695035460992907,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.6235294117647059,
+              "recall": 0.53,
+              "f1-score": 0.572972972972973,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.3191489361702128,
+              "recall": 1.0,
+              "f1-score": 0.4838709677419355,
+              "support": 30.0
+            }
+          }
+        },
+        "fall_tau_sweep": [
+          {
+            "fall_tau": 0.3,
+            "fall_sensitivity": 0.7341772151898734,
+            "fall_false_alarm_rate_adl": 0.4525,
+            "fall_specificity_adl": 0.5475,
+            "fall_false_alarm_rate_empty": 0.26666666666666666,
+            "trial_accuracy": 0.3850687622789784
+          },
+          {
+            "fall_tau": 0.4,
+            "fall_sensitivity": 0.3670886075949367,
+            "fall_false_alarm_rate_adl": 0.1175,
+            "fall_specificity_adl": 0.8825,
+            "fall_false_alarm_rate_empty": 0.03333333333333333,
+            "trial_accuracy": 0.48330058939096265
+          },
+          {
+            "fall_tau": 0.5,
+            "fall_sensitivity": 0.24050632911392406,
+            "fall_false_alarm_rate_adl": 0.05,
+            "fall_specificity_adl": 0.95,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.48722986247544203
+          },
+          {
+            "fall_tau": 0.6,
+            "fall_sensitivity": 0.22784810126582278,
+            "fall_false_alarm_rate_adl": 0.0375,
+            "fall_specificity_adl": 0.9625,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.4911591355599214
+          },
+          {
+            "fall_tau": 0.7,
+            "fall_sensitivity": 0.22784810126582278,
+            "fall_false_alarm_rate_adl": 0.0375,
+            "fall_specificity_adl": 0.9625,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.4911591355599214
+          },
+          {
+            "fall_tau": 0.8,
+            "fall_sensitivity": 0.22784810126582278,
+            "fall_false_alarm_rate_adl": 0.0375,
+            "fall_specificity_adl": 0.9625,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.4911591355599214
+          },
+          {
+            "fall_tau": 1.01,
+            "fall_sensitivity": 0.22784810126582278,
+            "fall_false_alarm_rate_adl": 0.0375,
+            "fall_specificity_adl": 0.9625,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.4911591355599214
+          }
+        ],
+        "per_fold": [
+          {
+            "fold": "fold_1",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.4803921568627451,
+            "trial_macro_f1": 0.4481216101133075,
+            "fall_sensitivity": 0.1875,
+            "fall_false_alarm_rate_adl": 0.0375,
+            "fall_specificity_adl": 0.9625,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_2",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.4411764705882353,
+            "trial_macro_f1": 0.42022025347606745,
+            "fall_sensitivity": 0.1875,
+            "fall_false_alarm_rate_adl": 0.075,
+            "fall_specificity_adl": 0.925,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_3",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.47058823529411764,
+            "trial_macro_f1": 0.44051558698641524,
+            "fall_sensitivity": 0.3125,
+            "fall_false_alarm_rate_adl": 0.075,
+            "fall_specificity_adl": 0.925,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_4",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.5196078431372549,
+            "trial_macro_f1": 0.5060054324760208,
+            "fall_sensitivity": 0.25,
+            "fall_false_alarm_rate_adl": 0.05,
+            "fall_specificity_adl": 0.95,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_5",
+            "n_test_trials": 101,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.5247524752475248,
+            "trial_macro_f1": 0.49341168091168086,
+            "fall_sensitivity": 0.26666666666666666,
+            "fall_false_alarm_rate_adl": 0.0125,
+            "fall_specificity_adl": 0.9875,
+            "fall_false_alarm_rate_empty": 0.0,
+            "n_fall": 15,
+            "n_adl": 80
+          }
+        ]
+      }
+    },
+    "hist_gradient_boosting": {
+      "loso": {
+        "window_level": {
+          "accuracy": 0.29722562219502247,
+          "macro_f1": 0.2771949206519979,
+          "fall_sensitivity": 0.10759493670886076,
+          "fall_false_alarm_rate_adl": 0.09202702702702703,
+          "fall_specificity_adl": 0.907972972972973,
+          "fall_false_alarm_rate_empty": 0.07543859649122807,
+          "n_fall": 1264,
+          "n_adl": 7400,
+          "confusion_matrix": [
+            [
+              136,
+              289,
+              265,
+              237,
+              183,
+              154
+            ],
+            [
+              163,
+              1036,
+              253,
+              266,
+              436,
+              46
+            ],
+            [
+              206,
+              292,
+              337,
+              276,
+              220,
+              269
+            ],
+            [
+              178,
+              348,
+              293,
+              219,
+              294,
+              268
+            ],
+            [
+              134,
+              509,
+              247,
+              264,
+              676,
+              170
+            ],
+            [
+              86,
+              46,
+              215,
+              185,
+              98,
+              510
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.150609080841639,
+              "recall": 0.10759493670886076,
+              "f1-score": 0.12551915089986157,
+              "support": 1264.0
+            },
+            "walk": {
+              "precision": 0.4111111111111111,
+              "recall": 0.4709090909090909,
+              "f1-score": 0.43898305084745765,
+              "support": 2200.0
+            },
+            "sit": {
+              "precision": 0.2093167701863354,
+              "recall": 0.210625,
+              "f1-score": 0.20996884735202492,
+              "support": 1600.0
+            },
+            "stand": {
+              "precision": 0.15134761575673808,
+              "recall": 0.136875,
+              "f1-score": 0.14374794880210043,
+              "support": 1600.0
+            },
+            "hand": {
+              "precision": 0.3544834819087572,
+              "recall": 0.338,
+              "f1-score": 0.3460455592526235,
+              "support": 2000.0
+            },
+            "empty_room": {
+              "precision": 0.35991531404375443,
+              "recall": 0.4473684210526316,
+              "f1-score": 0.3989049667579194,
+              "support": 1140.0
+            }
+          }
+        },
+        "trial_level": {
+          "accuracy": 0.3104125736738703,
+          "macro_f1": 0.3167629959380123,
+          "fall_sensitivity": 0.569620253164557,
+          "fall_false_alarm_rate_adl": 0.4925,
+          "fall_specificity_adl": 0.5075,
+          "fall_false_alarm_rate_empty": 0.5333333333333333,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              45,
+              7,
+              11,
+              10,
+              2,
+              4
+            ],
+            [
+              46,
+              40,
+              4,
+              4,
+              6,
+              0
+            ],
+            [
+              62,
+              8,
+              17,
+              4,
+              2,
+              7
+            ],
+            [
+              59,
+              11,
+              10,
+              4,
+              10,
+              6
+            ],
+            [
+              30,
+              11,
+              10,
+              6,
+              39,
+              4
+            ],
+            [
+              16,
+              0,
+              1,
+              0,
+              0,
+              13
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.1744186046511628,
+              "recall": 0.569620253164557,
+              "f1-score": 0.26706231454005935,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.5194805194805194,
+              "recall": 0.4,
+              "f1-score": 0.4519774011299435,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.32075471698113206,
+              "recall": 0.17,
+              "f1-score": 0.2222222222222222,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.14285714285714285,
+              "recall": 0.04,
+              "f1-score": 0.0625,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.6610169491525424,
+              "recall": 0.39,
+              "f1-score": 0.49056603773584906,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.38235294117647056,
+              "recall": 0.43333333333333335,
+              "f1-score": 0.40625,
+              "support": 30.0
+            }
+          }
+        },
+        "trial_level_pool_only": {
+          "accuracy": 0.3693516699410609,
+          "macro_f1": 0.33955573876287587,
+          "fall_sensitivity": 0.05063291139240506,
+          "fall_false_alarm_rate_adl": 0.04,
+          "fall_specificity_adl": 0.96,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              4,
+              14,
+              27,
+              20,
+              8,
+              6
+            ],
+            [
+              0,
+              70,
+              10,
+              8,
+              12,
+              0
+            ],
+            [
+              8,
+              12,
+              28,
+              16,
+              17,
+              19
+            ],
+            [
+              6,
+              17,
+              23,
+              8,
+              28,
+              18
+            ],
+            [
+              2,
+              15,
+              12,
+              13,
+              53,
+              5
+            ],
+            [
+              0,
+              0,
+              2,
+              2,
+              1,
+              25
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.2,
+              "recall": 0.05063291139240506,
+              "f1-score": 0.08080808080808081,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.546875,
+              "recall": 0.7,
+              "f1-score": 0.6140350877192983,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.27450980392156865,
+              "recall": 0.28,
+              "f1-score": 0.27722772277227725,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.11940298507462686,
+              "recall": 0.08,
+              "f1-score": 0.09580838323353294,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.44537815126050423,
+              "recall": 0.53,
+              "f1-score": 0.4840182648401826,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.3424657534246575,
+              "recall": 0.8333333333333334,
+              "f1-score": 0.4854368932038835,
+              "support": 30.0
+            }
+          }
+        },
+        "fall_tau_sweep": [
+          {
+            "fall_tau": 0.3,
+            "fall_sensitivity": 0.810126582278481,
+            "fall_false_alarm_rate_adl": 0.825,
+            "fall_specificity_adl": 0.175,
+            "fall_false_alarm_rate_empty": 0.8333333333333334,
+            "trial_accuracy": 0.19842829076620824
+          },
+          {
+            "fall_tau": 0.4,
+            "fall_sensitivity": 0.7341772151898734,
+            "fall_false_alarm_rate_adl": 0.6575,
+            "fall_specificity_adl": 0.3425,
+            "fall_false_alarm_rate_empty": 0.6,
+            "trial_accuracy": 0.2632612966601179
+          },
+          {
+            "fall_tau": 0.5,
+            "fall_sensitivity": 0.569620253164557,
+            "fall_false_alarm_rate_adl": 0.4925,
+            "fall_specificity_adl": 0.5075,
+            "fall_false_alarm_rate_empty": 0.5333333333333333,
+            "trial_accuracy": 0.3104125736738703
+          },
+          {
+            "fall_tau": 0.6,
+            "fall_sensitivity": 0.3670886075949367,
+            "fall_false_alarm_rate_adl": 0.355,
+            "fall_specificity_adl": 0.645,
+            "fall_false_alarm_rate_empty": 0.4,
+            "trial_accuracy": 0.32220039292730845
+          },
+          {
+            "fall_tau": 0.7,
+            "fall_sensitivity": 0.22784810126582278,
+            "fall_false_alarm_rate_adl": 0.2275,
+            "fall_specificity_adl": 0.7725,
+            "fall_false_alarm_rate_empty": 0.26666666666666666,
+            "trial_accuracy": 0.343811394891945
+          },
+          {
+            "fall_tau": 0.8,
+            "fall_sensitivity": 0.17721518987341772,
+            "fall_false_alarm_rate_adl": 0.1175,
+            "fall_specificity_adl": 0.8825,
+            "fall_false_alarm_rate_empty": 0.23333333333333334,
+            "trial_accuracy": 0.35952848722986247
+          },
+          {
+            "fall_tau": 1.01,
+            "fall_sensitivity": 0.05063291139240506,
+            "fall_false_alarm_rate_adl": 0.04,
+            "fall_specificity_adl": 0.96,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.3693516699410609
+          }
+        ],
+        "per_fold": [
+          {
+            "fold": "subject_1",
+            "n_test_trials": 105,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.47619047619047616,
+            "trial_macro_f1": 0.4366013071895425,
+            "fall_sensitivity": 0.631578947368421,
+            "fall_false_alarm_rate_adl": 0.375,
+            "fall_specificity_adl": 0.625,
+            "fall_false_alarm_rate_empty": 0.5,
+            "n_fall": 19,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_2",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.330188679245283,
+            "trial_macro_f1": 0.32173785086267154,
+            "fall_sensitivity": 0.75,
+            "fall_false_alarm_rate_adl": 0.5125,
+            "fall_specificity_adl": 0.4875,
+            "fall_false_alarm_rate_empty": 0.3333333333333333,
+            "n_fall": 20,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_3",
+            "n_test_trials": 86,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.22093023255813954,
+            "trial_macro_f1": 0.28290598290598296,
+            "fall_sensitivity": null,
+            "fall_false_alarm_rate_adl": 0.6875,
+            "fall_specificity_adl": 0.3125,
+            "fall_false_alarm_rate_empty": 0.3333333333333333,
+            "n_fall": 0,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_4",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.19811320754716982,
+            "trial_macro_f1": 0.16575757575757574,
+            "fall_sensitivity": 0.45,
+            "fall_false_alarm_rate_adl": 0.5125,
+            "fall_specificity_adl": 0.4875,
+            "fall_false_alarm_rate_empty": 0.8333333333333334,
+            "n_fall": 20,
+            "n_adl": 80
+          },
+          {
+            "fold": "subject_5",
+            "n_test_trials": 106,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.3113207547169811,
+            "trial_macro_f1": 0.2946174196174196,
+            "fall_sensitivity": 0.45,
+            "fall_false_alarm_rate_adl": 0.375,
+            "fall_specificity_adl": 0.625,
+            "fall_false_alarm_rate_empty": 0.6666666666666666,
+            "n_fall": 20,
+            "n_adl": 80
+          }
+        ]
+      },
+      "stratified_group_5fold": {
+        "window_level": {
+          "accuracy": 0.3580171358629131,
+          "macro_f1": 0.3380594760891095,
+          "fall_sensitivity": 0.17800632911392406,
+          "fall_false_alarm_rate_adl": 0.08486486486486486,
+          "fall_specificity_adl": 0.9151351351351351,
+          "fall_false_alarm_rate_empty": 0.09035087719298246,
+          "n_fall": 1264,
+          "n_adl": 7400,
+          "confusion_matrix": [
+            [
+              225,
+              315,
+              243,
+              182,
+              192,
+              107
+            ],
+            [
+              162,
+              1170,
+              220,
+              243,
+              360,
+              45
+            ],
+            [
+              164,
+              287,
+              481,
+              267,
+              186,
+              215
+            ],
+            [
+              142,
+              339,
+              319,
+              304,
+              266,
+              230
+            ],
+            [
+              160,
+              383,
+              224,
+              256,
+              843,
+              134
+            ],
+            [
+              103,
+              45,
+              203,
+              206,
+              96,
+              487
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.23535564853556484,
+              "recall": 0.17800632911392406,
+              "f1-score": 0.20270270270270271,
+              "support": 1264.0
+            },
+            "walk": {
+              "precision": 0.4608113430484443,
+              "recall": 0.5318181818181819,
+              "f1-score": 0.4937750580291201,
+              "support": 2200.0
+            },
+            "sit": {
+              "precision": 0.2846153846153846,
+              "recall": 0.300625,
+              "f1-score": 0.2924012158054711,
+              "support": 1600.0
+            },
+            "stand": {
+              "precision": 0.2085048010973937,
+              "recall": 0.19,
+              "f1-score": 0.1988227599738391,
+              "support": 1600.0
+            },
+            "hand": {
+              "precision": 0.43386515697375194,
+              "recall": 0.4215,
+              "f1-score": 0.4275932031448136,
+              "support": 2000.0
+            },
+            "empty_room": {
+              "precision": 0.39983579638752054,
+              "recall": 0.42719298245614035,
+              "f1-score": 0.41306191687871074,
+              "support": 1140.0
+            }
+          }
+        },
+        "trial_level": {
+          "accuracy": 0.37524557956778,
+          "macro_f1": 0.3849409544969909,
+          "fall_sensitivity": 0.7088607594936709,
+          "fall_false_alarm_rate_adl": 0.4925,
+          "fall_specificity_adl": 0.5075,
+          "fall_false_alarm_rate_empty": 0.43333333333333335,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              56,
+              8,
+              7,
+              3,
+              3,
+              2
+            ],
+            [
+              43,
+              51,
+              1,
+              2,
+              3,
+              0
+            ],
+            [
+              62,
+              4,
+              20,
+              3,
+              4,
+              7
+            ],
+            [
+              46,
+              8,
+              19,
+              10,
+              12,
+              5
+            ],
+            [
+              46,
+              7,
+              4,
+              3,
+              39,
+              1
+            ],
+            [
+              13,
+              0,
+              0,
+              2,
+              0,
+              15
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.21052631578947367,
+              "recall": 0.7088607594936709,
+              "f1-score": 0.32463768115942027,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.6538461538461539,
+              "recall": 0.51,
+              "f1-score": 0.5730337078651685,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.39215686274509803,
+              "recall": 0.2,
+              "f1-score": 0.26490066225165565,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.43478260869565216,
+              "recall": 0.1,
+              "f1-score": 0.16260162601626016,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.639344262295082,
+              "recall": 0.39,
+              "f1-score": 0.484472049689441,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.5,
+              "recall": 0.5,
+              "f1-score": 0.5,
+              "support": 30.0
+            }
+          }
+        },
+        "trial_level_pool_only": {
+          "accuracy": 0.5265225933202358,
+          "macro_f1": 0.5040085503546722,
+          "fall_sensitivity": 0.17721518987341772,
+          "fall_false_alarm_rate_adl": 0.0225,
+          "fall_specificity_adl": 0.9775,
+          "fall_false_alarm_rate_empty": 0.0,
+          "n_fall": 79,
+          "n_adl": 400,
+          "confusion_matrix": [
+            [
+              14,
+              20,
+              24,
+              10,
+              8,
+              3
+            ],
+            [
+              2,
+              85,
+              1,
+              3,
+              8,
+              1
+            ],
+            [
+              4,
+              10,
+              55,
+              12,
+              9,
+              10
+            ],
+            [
+              2,
+              13,
+              34,
+              23,
+              19,
+              9
+            ],
+            [
+              1,
+              12,
+              14,
+              6,
+              64,
+              3
+            ],
+            [
+              0,
+              0,
+              1,
+              2,
+              0,
+              27
+            ]
+          ],
+          "per_class": {
+            "fall": {
+              "precision": 0.6086956521739131,
+              "recall": 0.17721518987341772,
+              "f1-score": 0.27450980392156865,
+              "support": 79.0
+            },
+            "walk": {
+              "precision": 0.6071428571428571,
+              "recall": 0.85,
+              "f1-score": 0.7083333333333334,
+              "support": 100.0
+            },
+            "sit": {
+              "precision": 0.4263565891472868,
+              "recall": 0.55,
+              "f1-score": 0.48034934497816595,
+              "support": 100.0
+            },
+            "stand": {
+              "precision": 0.4107142857142857,
+              "recall": 0.23,
+              "f1-score": 0.2948717948717949,
+              "support": 100.0
+            },
+            "hand": {
+              "precision": 0.5925925925925926,
+              "recall": 0.64,
+              "f1-score": 0.6153846153846154,
+              "support": 100.0
+            },
+            "empty_room": {
+              "precision": 0.5094339622641509,
+              "recall": 0.9,
+              "f1-score": 0.6506024096385542,
+              "support": 30.0
+            }
+          }
+        },
+        "fall_tau_sweep": [
+          {
+            "fall_tau": 0.3,
+            "fall_sensitivity": 0.9493670886075949,
+            "fall_false_alarm_rate_adl": 0.8,
+            "fall_specificity_adl": 0.2,
+            "fall_false_alarm_rate_empty": 0.8666666666666667,
+            "trial_accuracy": 0.2554027504911591
+          },
+          {
+            "fall_tau": 0.4,
+            "fall_sensitivity": 0.8860759493670886,
+            "fall_false_alarm_rate_adl": 0.655,
+            "fall_specificity_adl": 0.345,
+            "fall_false_alarm_rate_empty": 0.5,
+            "trial_accuracy": 0.32612966601178783
+          },
+          {
+            "fall_tau": 0.5,
+            "fall_sensitivity": 0.7088607594936709,
+            "fall_false_alarm_rate_adl": 0.4925,
+            "fall_specificity_adl": 0.5075,
+            "fall_false_alarm_rate_empty": 0.43333333333333335,
+            "trial_accuracy": 0.37524557956778
+          },
+          {
+            "fall_tau": 0.6,
+            "fall_sensitivity": 0.5316455696202531,
+            "fall_false_alarm_rate_adl": 0.34,
+            "fall_specificity_adl": 0.66,
+            "fall_false_alarm_rate_empty": 0.3,
+            "trial_accuracy": 0.4086444007858546
+          },
+          {
+            "fall_tau": 0.7,
+            "fall_sensitivity": 0.4430379746835443,
+            "fall_false_alarm_rate_adl": 0.21,
+            "fall_specificity_adl": 0.79,
+            "fall_false_alarm_rate_empty": 0.2,
+            "trial_accuracy": 0.4656188605108055
+          },
+          {
+            "fall_tau": 0.8,
+            "fall_sensitivity": 0.34177215189873417,
+            "fall_false_alarm_rate_adl": 0.1175,
+            "fall_specificity_adl": 0.8825,
+            "fall_false_alarm_rate_empty": 0.06666666666666667,
+            "trial_accuracy": 0.5049115913555993
+          },
+          {
+            "fall_tau": 1.01,
+            "fall_sensitivity": 0.17721518987341772,
+            "fall_false_alarm_rate_adl": 0.0225,
+            "fall_specificity_adl": 0.9775,
+            "fall_false_alarm_rate_empty": 0.0,
+            "trial_accuracy": 0.5265225933202358
+          }
+        ],
+        "per_fold": [
+          {
+            "fold": "fold_1",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.4117647058823529,
+            "trial_macro_f1": 0.4162765806148086,
+            "fall_sensitivity": 0.8125,
+            "fall_false_alarm_rate_adl": 0.5,
+            "fall_specificity_adl": 0.5,
+            "fall_false_alarm_rate_empty": 0.3333333333333333,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_2",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.3627450980392157,
+            "trial_macro_f1": 0.3576438098394334,
+            "fall_sensitivity": 0.6875,
+            "fall_false_alarm_rate_adl": 0.475,
+            "fall_specificity_adl": 0.525,
+            "fall_false_alarm_rate_empty": 0.3333333333333333,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_3",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.39215686274509803,
+            "trial_macro_f1": 0.37282027749250785,
+            "fall_sensitivity": 0.9375,
+            "fall_false_alarm_rate_adl": 0.525,
+            "fall_specificity_adl": 0.475,
+            "fall_false_alarm_rate_empty": 0.5,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_4",
+            "n_test_trials": 102,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.3431372549019608,
+            "trial_macro_f1": 0.3455466791979949,
+            "fall_sensitivity": 0.5625,
+            "fall_false_alarm_rate_adl": 0.4375,
+            "fall_specificity_adl": 0.5625,
+            "fall_false_alarm_rate_empty": 0.6666666666666666,
+            "n_fall": 16,
+            "n_adl": 80
+          },
+          {
+            "fold": "fold_5",
+            "n_test_trials": 101,
+            "n_aug_train_trials": 0,
+            "trial_accuracy": 0.36633663366336633,
+            "trial_macro_f1": 0.41725963685133355,
+            "fall_sensitivity": 0.5333333333333333,
+            "fall_false_alarm_rate_adl": 0.525,
+            "fall_specificity_adl": 0.475,
+            "fall_false_alarm_rate_empty": 0.3333333333333333,
+            "n_fall": 15,
+            "n_adl": 80
+          }
+        ]
+      }
+    }
+  }
+}

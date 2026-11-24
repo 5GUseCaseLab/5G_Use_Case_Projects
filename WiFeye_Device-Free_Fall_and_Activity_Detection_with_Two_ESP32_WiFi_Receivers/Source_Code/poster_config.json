@@ -1,0 +1,9 @@
+{
+  "title": "WiFeye: Device-Free Fall & Activity Detection with Two ESP32 Wi-Fi Receivers",
+  "course": "EE 4032 :  5G Wireless Networks",
+  "authors": "Devansh Jangid (230102027)  ·  Debasis Patnaik (230102025)",
+  "affiliation": "Department of EEE, Indian Institute of Technology Guwahati, Assam 781039, India",
+  "acknowledgement": "We thank Prof. Salil Kashyap and the EEE Department, IIT Guwahati, for guidance and for lab facilities and hardware.",
+  "logo": "assets/iitg_logo.png",
+  "paper": "A1"
+}

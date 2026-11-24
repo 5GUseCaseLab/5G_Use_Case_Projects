@@ -1,0 +1,70 @@
+{
+  "selected_model": "hist_gradient_boosting",
+  "classes": [
+    "fall",
+    "walk",
+    "sit",
+    "stand",
+    "hand",
+    "empty_room"
+  ],
+  "feature_names": [
+    "tier_energy_var",
+    "tier_energy_mean",
+    "tier_dE_dt",
+    "tier_motion_entropy",
+    "flag_dormant",
+    "flag_fall_fastpath",
+    "stat_mean_rx1",
+    "stat_std_rx1",
+    "stat_skew_rx1",
+    "stat_kurt_rx1",
+    "stat_ptp_rx1",
+    "stat_mean_rx2",
+    "stat_std_rx2",
+    "stat_skew_rx2",
+    "stat_kurt_rx2",
+    "stat_ptp_rx2",
+    "spatial_cross_corr",
+    "spec_band_05_2Hz",
+    "spec_band_2_5Hz",
+    "spec_band_5_10Hz",
+    "spec_dominant_freq",
+    "spec_entropy"
+  ],
+  "window_len": 50,
+  "stride": 25,
+  "fs": 100.0,
+  "fall_tau": 0.5,
+  "action_intervals_s": {
+    "fall": [
+      2.0,
+      6.0
+    ],
+    "sit": [
+      2.0,
+      6.0
+    ],
+    "stand": [
+      2.0,
+      6.0
+    ],
+    "walk": [
+      2.0,
+      7.5
+    ],
+    "hand": [
+      2.0,
+      7.0
+    ],
+    "empty_room": [
+      0.0,
+      1000000000.0
+    ]
+  },
+  "trial_region_s": [
+    2.0,
+    7.5
+  ],
+  "features_dir": "data/features"
+}

@@ -1,0 +1,69 @@
+{
+  "metric": "ext",
+  "q1": 0.025,
+  "q2": 0.05,
+  "thresholds": [
+    {
+      "fold": "subject_1",
+      "T1": 3.006239529470904,
+      "T2": 5.375279881327784
+    },
+    {
+      "fold": "subject_2",
+      "T1": 2.701932348545169,
+      "T2": 5.348462265944659
+    },
+    {
+      "fold": "subject_3",
+      "T1": 2.7159224889214553,
+      "T2": 5.33620545048526
+    },
+    {
+      "fold": "subject_4",
+      "T1": 2.701932348545169,
+      "T2": 5.4929327102332834
+    },
+    {
+      "fold": "subject_5",
+      "T1": 2.701932348545169,
+      "T2": 5.337639894424936
+    }
+  ],
+  "share_by_class": {
+    "tier1": {
+      "empty_room": 0.308,
+      "fall": 0.646,
+      "hand": 0.514,
+      "sit": 0.686,
+      "stand": 0.637,
+      "walk": 0.505
+    },
+    "tier2": {
+      "empty_room": 0.027,
+      "fall": 0.067,
+      "hand": 0.007,
+      "sit": 0.014,
+      "stand": 0.014,
+      "walk": 0.032
+    },
+    "tier3": {
+      "empty_room": 0.665,
+      "fall": 0.287,
+      "hand": 0.478,
+      "sit": 0.3,
+      "stand": 0.35,
+      "walk": 0.463
+    }
+  },
+  "overall": {
+    "1": 0.578,
+    "2": 0.025,
+    "3": 0.397
+  },
+  "falls_lost_tier1": 5,
+  "n_falls": 79,
+  "fall_trials_reach_fastpath": 30,
+  "adl_event_windows_fastpath": 0.04944717444717445,
+  "adl_trials_any_fastpath": 0.0875,
+  "empty_windows_skipped": 0.30761209593326383
+}
