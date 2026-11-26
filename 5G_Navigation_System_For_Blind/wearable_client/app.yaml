@@ -1,0 +1,5 @@
+name: 5G Wearable Client
+description: 5G Wearable Assistive Device streaming camera, ultrasonic, and GPS telemetry over 5G UDP to Edge AI Server
+ports: []
+bricks: []
+icon: 👓
