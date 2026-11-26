@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Logs & temporary files
+*.log
+edge_server/live_map.html
+
+# Runtime-generated files & caches
+edge_server/navigation_state.json
+captured_voice_debug.wav
+active_tunnel_url.txt
+edge_server/qr_code.png
+wearable_client/python/tunnel_url.txt
+
+# Large binaries & unused model weights
+cloudflared.exe
+yolov8m.pt
+
+# Scratch, backups, internal docs & unused legacy files
+scratch/
+docs/
+edge_server/navigation/campus_landmarks.json.bak
+wearable_client/app.zip
+edge_server/server_main.py
+test_assets/mock_gps_coordinates.json

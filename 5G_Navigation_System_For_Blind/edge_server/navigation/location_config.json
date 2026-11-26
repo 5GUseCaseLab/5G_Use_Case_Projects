@@ -1,0 +1,6 @@
+{
+  "enable_ip_lookup": false,
+  "fallback_latitude": 26.1885,
+  "fallback_longitude": 91.6917,
+  "description": "enable_ip_lookup=false prevents ISP router from guessing Fancy Bazaar. Real iPhone GPS takes live priority!"
+}

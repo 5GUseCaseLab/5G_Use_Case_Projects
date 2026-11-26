@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>5G Assistive Wearable - Audio & Navigation Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a12">
+  <link rel="stylesheet" href="/style.css?v=3.0">
+</head>
+<body>
+  <div>
+    <div class="top-bar">
+      <div class="brand">5G WEARABLE ASSIST</div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <div class="badge" id="cameraToggleBtn" onclick="toggleCameraSource(event)" style="cursor: pointer;" title="Tap to switch between Arduino camera and Phone camera">
+          <span id="cameraToggleText">📷 CAM: ARDUINO</span>
+        </div>
+        <div class="badge" id="wearableBadge">
+          <div class="dot" style="background: #00e676;"></div>
+          <span id="wearableText">👓 WEARABLE</span>
+        </div>
+        <div class="badge" id="audioBadge">
+          <div class="dot"></div>
+          <span id="audioText">🎧 EARPHONES</span>
+        </div>
+        <div class="badge" id="netBadge">
+          <div class="dot"></div>
+          <span id="netText">DISCONNECTED</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accessible Audio & Hazard Status Display (Optimized for pocket use & blind navigation) -->
+    <div class="status-hero-card" id="statusHeroCard">
+      <div class="status-hero-icon" id="statusHeroIcon">🟢</div>
+      <div class="status-hero-main" id="statusHeroMain">PATHWAY CLEAR</div>
+      <div class="status-hero-sub" id="statusHeroSub">Wearable Vision & Ultrasonic Active</div>
+      <div class="threat-banner" id="threatBanner">⚠️ OBSTACLE AHEAD</div>
+    </div>
+
+    <!-- Live GNSS & Sensor Telemetry -->
+    <div class="metrics-grid">
+      <div class="metric-card" onclick="requestImmediateGpsFix()" style="cursor: pointer;" title="Tap to acquire GPS fix">
+        <div class="metric-lbl">📍 SATELLITE GPS (TAP TO RE-FIX)</div>
+        <div class="metric-val" id="coordsVal">Acquiring GPS...</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">⚡ GROUND SPEED</div>
+        <div class="metric-val" id="speedVal">0.0 km/h</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">🎯 SATELLITE ACCURACY</div>
+        <div class="metric-val" id="accVal">--</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-lbl">👓 WEARABLE DISTANCE</div>
+        <div class="metric-val" id="ultraVal">-- cm</div>
+      </div>
+    </div>
+
+    <!-- Quick Campus Location Presets (Crucial for Indoor testing where GPS satellites have no signal) -->
+    <div class="gps-preset-bar">
+      <button type="button" class="gps-preset-btn" onclick="setManualPresetGps(26.1885, 91.6917, 'Hostels', event)">📍 Hostels</button>
+      <button type="button" class="gps-preset-btn" onclick="setManualPresetGps(26.1928, 91.6987, 'New SAC', event)">📍 New SAC</button>
+      <button type="button" class="gps-preset-btn" onclick="setManualPresetGps(26.1873, 91.6916, 'Core 2', event)">📍 Core 2</button>
+      <button type="button" class="gps-preset-btn" onclick="setManualPresetGps(26.1880, 91.6925, 'Library', event)">📍 Library</button>
+      <button type="button" class="gps-preset-btn" id="liveGnssBtn" onclick="requestImmediateGpsFix(event)">🛰️ Live GNSS</button>
+    </div>
+
+    <!-- Turn-by-Turn Sequential Navigation Card (Accessible for visually impaired) -->
+    <div class="nav-card" id="navCard" onclick="handleCardTap()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div class="metric-lbl" style="margin: 0;">🧭 WALKING GUIDANCE</div>
+        <div id="stepCounter" style="font-size: 11px; font-weight: 800; color: #00e5ff; background: rgba(0, 229, 255, 0.15); padding: 3px 8px; border-radius: 6px;">STANDBY</div>
+      </div>
+      <div class="nav-step" id="navStepText">Ready. Speak destination or tap to begin walking guidance.</div>
+      <div id="routeProgress" style="font-size: 11px; color: #8899aa; margin-top: 6px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="routeDistLeft">--</span>
+          <a id="gmapsBtn" href="/map" target="_blank" style="font-size: 11px; font-weight: 800; color: #00e676; text-decoration: none; background: rgba(0, 230, 118, 0.15); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(0, 230, 118, 0.4);">🗺️ GOOGLE MAPS ↗</a>
+        </div>
+      </div>
+      
+      <!-- Sequential Step Action Bar -->
+      <div class="step-controls" id="stepControls" style="display: none;">
+        <button type="button" class="step-ctrl-btn" id="prevStepBtn" onclick="navigateStep(-1, event)">⬅️ PREV</button>
+        <button type="button" class="step-ctrl-btn repeat-btn" id="repeatStepBtn" onclick="repeatCurrentStep(event)">🔊 REPEAT STEP</button>
+        <button type="button" class="step-ctrl-btn" id="nextStepBtn" onclick="navigateStep(1, event)">NEXT ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-buttons">
+    <button class="start-btn active" id="startBtn" onclick="activateAudioAndGps(event)">
+      🟢 AUDIO & SENSORS ACTIVE
+    </button>
+    <button class="ptt-btn" id="pttBtn" onclick="triggerPushToTalk(event)">
+      🎙️ SAY "NAVIGATE ME" OR TAP TO SPEAK
+    </button>
+    <div class="manual-dest-box">
+      <input type="text" id="destTextInput" class="manual-dest-input" placeholder="Type destination (e.g. New SAC)..." onkeydown="if(event.key==='Enter') sendTextDestination()">
+      <button type="button" class="manual-dest-btn" onclick="sendTextDestination()">GO ➡️</button>
+    </div>
+  </div>
+
+  <script src="/app.js?v=3.0"></script>
+</body>
+</html>

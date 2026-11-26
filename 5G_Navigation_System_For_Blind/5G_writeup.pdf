@@ -1,0 +1,203 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 4 0 R /F2 5 0 R /F3 6 0 R >> >> /Contents 7 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>
+endobj
+7 0 obj
+<< /Length 9126 >>
+stream
+0.060 0.090 0.160 rg
+BT /F2 13.00 Tf 59.80 803.89 Td (5G-Enabled Wearable Assistive Navigation & AI Spatial Hazard-Detection System) Tj ET
+0.280 0.330 0.410 rg
+BT /F1 8.80 Tf 98.58 788.89 Td (Course: 5G Wireless Communication Project   |   Institution: IIT Guwahati   |   Advisor: Prof. Salil Kashyap) Tj ET
+0.118 0.227 0.541 RG
+1.10 w 42.00 782.89 m 553.28 782.89 l S
+0.118 0.227 0.541 rg
+BT /F2 10.80 Tf 42.00 765.89 Td (1. Problem Statement & Motivation) Tj ET
+0.118 0.227 0.541 RG
+0.90 w 42.00 761.89 m 553.28 761.89 l S
+0.120 0.160 0.220 rg
+BT 42.00 748.89 Td /F1 9.10 Tf (Blind and Visually Impaired \(BVI\) pedestrians face two concurrent outdoor challenges: ) Tj /F2 9.10 Tf (macro-navigation) Tj /F1 9.10 Tf ( \(following curving) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 736.49 Td /F1 9.10 Tf (footpaths and locating building entrances\) and ) Tj /F2 9.10 Tf (micro-navigation) Tj /F1 9.10 Tf ( \(avoiding fast cyclists, vehicles, and static hazards\). Existing) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 724.09 Td /F1 9.10 Tf (commercial aids suffer from two fundamental limitations: \(1\) ) Tj /F2 9.10 Tf (Alert Fatigue) Tj /F1 9.10 Tf (, where simple ultrasonic buzzers beep continuously at) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 711.69 Td /F1 9.10 Tf (stationary walls or parked cars; and \(2\) ) Tj /F2 9.10 Tf (The Embedded SWaP Bottleneck) Tj /F1 9.10 Tf (, where Size, Weight, and Power constraints prevent) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 699.29 Td /F1 9.10 Tf (battery-powered wearables from executing deep neural networks, monocular depth estimation, and speech recognition locally.) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 10.80 Tf 42.00 679.89 Td (2. Three-Tier 5G Edge Computing Architecture) Tj ET
+0.118 0.227 0.541 RG
+0.90 w 42.00 675.89 m 553.28 675.89 l S
+0.120 0.160 0.220 rg
+BT 42.00 662.89 Td /F1 9.10 Tf (To overcome SWaP limits while maintaining sub-50 ms safety responsiveness, the platform decouples lightweight physical sensing) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 650.49 Td /F1 9.10 Tf (from GPU-accelerated AI across three tiers linked over 5G and an encrypted Cloudflare Quick Tunnel with zero-touch ntfy.sh) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 638.09 Td /F1 9.10 Tf (auto-discovery:) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 9.50 Tf 46.00 623.69 Td (-) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 623.69 Td /F2 9.10 Tf (Tier 1 - Chest-Worn Wearable \(Arduino UNO Q\): ) Tj /F1 9.10 Tf (Dual-core unit pairing an STM32 Zephyr RTOS MCU \(non-blocking 16 Hz) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 611.29 Td /F1 9.10 Tf (HC-SR04 ultrasonic scanning with local emergency buzzer failsafe\) with an embedded Linux MPU that streams 8 FPS JPEG) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 598.89 Td /F1 9.10 Tf (video and 10 Hz range telemetry over a zero-dependency RFC 6455 WebSocket \(TCP_NODELAY\).) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 9.50 Tf 46.00 583.99 Td (-) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 583.99 Td /F2 9.10 Tf (Tier 2 - 5G Mobile Companion \(PWA\): ) Tj /F1 9.10 Tf (Smartphone web app providing GNSS coordinates/speed, magnetometer compass) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 571.59 Td /F1 9.10 Tf (heading \(with velocity-grounded GPS/compass arbitration\), continuous ~4 Hz pitch-modulated sonar, binaural 3D stereo voice) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 559.19 Td /F1 9.10 Tf (alerts, directional haptic vibrations, and push-to-talk voice input.) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 9.50 Tf 46.00 544.29 Td (-) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 544.29 Td /F2 9.10 Tf (Tier 3 - 5G Edge AI Workstation: ) Tj /F1 9.10 Tf (Executes YOLOv8 Nano object detection, on-demand MiDaS inverse depth estimation, local) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 531.89 Td /F1 9.10 Tf (OpenAI Whisper ASR, OSRM pedestrian routing, and Closest Point of Approach \(CPA\) physics on CUDA GPU.) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 10.80 Tf 42.00 509.99 Td (3. Core Technical Innovations) Tj ET
+0.118 0.227 0.541 RG
+0.90 w 42.00 505.99 m 553.28 505.99 l S
+0.118 0.227 0.541 rg
+BT /F2 9.50 Tf 46.00 492.99 Td (-) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 492.99 Td /F2 9.10 Tf (Predictive CPA Collision Avoidance: ) Tj /F1 9.10 Tf (Tracked obstacles are projected onto a heading-stabilized ground plane \(x, z\) via) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 480.59 Td /F1 9.10 Tf (monocular homography \(calibrated in closed form from 2 m and 5 m markers: y_h = \(5*v5 - 2*v2\)/3\) fused with ultrasonic) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 468.19 Td /F1 9.10 Tf (ranging. Using relative velocity v_rel, the predictor computes Time-to-CPA \(t* = -\(r . v_rel\) / ||v_rel||^2\) and minimum) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 455.79 Td /F1 9.10 Tf (separation \(d* = ||r + v_rel * t*||\), suppressing diverging objects and issuing STOP or STEP_LEFT / STEP_RIGHT cues only) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 443.39 Td /F1 9.10 Tf (for true collision paths. On-demand MiDaS disparity catches unclassified hazards \(potholes, branches, barriers\).) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 9.50 Tf 46.00 428.49 Td (-) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 428.49 Td /F2 9.10 Tf (Pedestrian Footpath Routing & Curvature Synthesis: ) Tj /F1 9.10 Tf (Combines local INT8 Whisper ASR and RapidFuzz campus snapping) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 416.09 Td /F1 9.10 Tf (\(75+ IITG landmarks\) with a 4-tier hybrid geocoder \(offline JSON, Nominatim, Overpass POI, 35 km guardrail\). OSRM walking) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 403.69 Td /F1 9.10 Tf (routes are resampled to 5 m resolution, evaluated via spherical geodesic bearings and +540 deg modular turn normalization, and) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 391.29 Td /F1 9.10 Tf (augmented with synthetic bend alerts for curves >= 35 deg. A state-driven approach phase delivers 12-hour clock-face guidance) Tj ET
+0.120 0.160 0.220 rg
+BT 56.00 378.89 Td /F1 9.10 Tf (and 15 m progress milestones.) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 10.80 Tf 42.00 356.99 Td (4. Experimental Results & Conclusion) Tj ET
+0.118 0.227 0.541 RG
+0.90 w 42.00 352.99 m 553.28 352.99 l S
+0.120 0.160 0.220 rg
+BT 42.00 339.99 Td /F1 9.10 Tf (Field trials across IIT Guwahati pedestrian corridors confirmed that 5G edge offloading delivers real-time situational awareness) Tj ET
+0.120 0.160 0.220 rg
+BT 42.00 327.59 Td /F1 9.10 Tf (without heavy onboard compute:) Tj ET
+0.118 0.227 0.541 rg
+42.00 297.69 511.28 17.50 re f
+1.000 1.000 1.000 rg
+BT /F2 8.60 Tf 48.00 302.19 Td (Performance Metric) Tj ET
+1.000 1.000 1.000 rg
+BT /F2 8.60 Tf 213.00 302.19 Td (Embedded Baseline \(RPi 4\)) Tj ET
+1.000 1.000 1.000 rg
+BT /F2 8.60 Tf 338.00 302.19 Td (Our 5G Edge System) Tj ET
+1.000 1.000 1.000 rg
+BT /F2 8.60 Tf 448.00 302.19 Td (Improvement) Tj ET
+1.000 1.000 1.000 rg
+42.00 280.19 511.28 17.50 re f
+0.880 0.910 0.940 RG
+0.40 w 42.00 280.19 m 553.28 280.19 l S
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 48.00 284.69 Td (Vision + Depth Inference Latency) Tj ET
+0.220 0.250 0.320 rg
+BT /F1 8.60 Tf 213.00 284.69 Td (180.0 ms) Tj ET
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 338.00 284.69 Td (32.4 ms) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 8.60 Tf 448.00 284.69 Td (5.5x faster) Tj ET
+0.970 0.980 0.990 rg
+42.00 262.69 511.28 17.50 re f
+0.880 0.910 0.940 RG
+0.40 w 42.00 262.69 m 553.28 262.69 l S
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 48.00 267.19 Td (End-to-End Collision Alert Time) Tj ET
+0.220 0.250 0.320 rg
+BT /F1 8.60 Tf 213.00 267.19 Td (220.0 ms) Tj ET
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 338.00 267.19 Td (48.6 ms) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 8.60 Tf 448.00 267.19 Td (Sub-50 ms safety) Tj ET
+1.000 1.000 1.000 rg
+42.00 245.19 511.28 17.50 re f
+0.880 0.910 0.940 RG
+0.40 w 42.00 245.19 m 553.28 245.19 l S
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 48.00 249.69 Td (Static False-Alarm Rate) Tj ET
+0.220 0.250 0.320 rg
+BT /F1 8.60 Tf 213.00 249.69 Td (64.2%) Tj ET
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 338.00 249.69 Td (2.8%) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 8.60 Tf 448.00 249.69 Td (95.6% reduction) Tj ET
+0.970 0.980 0.990 rg
+42.00 227.69 511.28 17.50 re f
+0.880 0.910 0.940 RG
+0.40 w 42.00 227.69 m 553.28 227.69 l S
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 48.00 232.19 Td (Landmark Snapping Accuracy) Tj ET
+0.220 0.250 0.320 rg
+BT /F1 8.60 Tf 213.00 232.19 Td (71.4%) Tj ET
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 338.00 232.19 Td (98.2%) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 8.60 Tf 448.00 232.19 Td (Hands-free routing) Tj ET
+1.000 1.000 1.000 rg
+42.00 210.19 511.28 17.50 re f
+0.880 0.910 0.940 RG
+0.40 w 42.00 210.19 m 553.28 210.19 l S
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 48.00 214.69 Td (Cloud Auto-Discovery Latency) Tj ET
+0.220 0.250 0.320 rg
+BT /F1 8.60 Tf 213.00 214.69 Td (Manual setup) Tj ET
+0.070 0.090 0.150 rg
+BT /F2 8.60 Tf 338.00 214.69 Td (< 3.5 s) Tj ET
+0.118 0.227 0.541 rg
+BT /F2 8.60 Tf 448.00 214.69 Td (Zero-touch pairing) Tj ET
+0.118 0.227 0.541 RG
+0.90 w 42.00 210.19 m 553.28 210.19 l S
+0.220 0.250 0.320 rg
+BT 42.00 198.19 Td /F3 9.10 Tf (By combining 5G low-latency edge offloading, CPA trajectory physics, and accessible multimodal feedback, the platform provides a) Tj ET
+0.220 0.250 0.320 rg
+BT 42.00 185.79 Td /F3 9.10 Tf (practical, lightweight, and reliable navigation aid for visually impaired pedestrians.) Tj ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000267 00000 n 
+0000000337 00000 n 
+0000000412 00000 n 
+0000000490 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+9668
+%%EOF
